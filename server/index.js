@@ -47,7 +47,6 @@ async function scrapeGSALR(zipCode, radius = 10) {
       
       // Set the path to chromedriver if needed (uncomment and update the path)
       // builder.setChromeService(new ServiceBuilder('path/to/chromedriver'));
-      
       driver = await builder.build();
       console.log('WebDriver initialized successfully');
     } catch (error) {
@@ -86,10 +85,75 @@ async function scrapeGSALR(zipCode, radius = 10) {
     const zipEnteredScreenshot = await driver.takeScreenshot();
     console.log('Screenshot after entering zip code taken');
     
-    // Submit the form
-    console.log('Submitting form...');
-    await zipInput.submit();
+    // Find and click the submit button
+    console.log('Finding and clicking submit button...');
+    const submitButton = await driver.wait(
+      until.elementLocated(By.xpath("//a[@class='button postfix radius button-city-loc-set']")),
+      10000
+    ).catch(err => {
+      console.error('Error finding submit button:', err);
+      throw err;
+    });
     
+    console.log('Clicking submit button...');
+    await submitButton.click();
+
+    // Refresh the page to avoid popups
+    console.log('Refreshing page to avoid popups...');
+    await driver.navigate().refresh();
+    
+    // Wait for page to load after refresh
+    await driver.sleep(2000);
+    
+    // Re-enter zip code
+    console.log('Re-entering zip code after refresh...');
+    const zipInputAfterRefresh = await driver.wait(
+      until.elementLocated(By.xpath("//input[@class='city-loc-set']")),
+      10000
+    ).catch(err => {
+      console.error('Error finding zip code input after refresh:', err);
+      throw err;
+    });
+    
+    await zipInputAfterRefresh.clear();
+    await zipInputAfterRefresh.sendKeys(zipCode);
+    
+    // Find and click the submit button again
+    console.log('Finding and clicking submit button after refresh...');
+    const submitButtonAfterRefresh = await driver.wait(
+      until.elementLocated(By.xpath("//a[@class='button postfix radius button-city-loc-set']")),
+      10000
+    ).catch(err => {
+      console.error('Error finding submit button after refresh:', err);
+      throw err;
+    });
+    
+    console.log('Clicking submit button after refresh...');
+    await submitButtonAfterRefresh.click();
+    
+    // Wait for the page to process the submission
+    await driver.sleep(3000);
+
+
+    // Handle the second popup (non-shadow DOM)
+    console.log('Checking for second popup...');
+    try {
+      const secondPopupClose = await driver.wait(
+        until.elementLocated(By.xpath("(//div[@class='close-reveal-modal'])[2]")),
+        5000 // Shorter timeout since this popup might not appear
+      );
+      
+      if (secondPopupClose) {
+        console.log('Found second popup, closing it...');
+        await secondPopupClose.click();
+        console.log('Second popup closed');
+        // Small delay after closing popup
+        await driver.sleep(1000);
+      }
+    } catch (error) {
+      console.log('No second popup found or error closing it:', error.message);
+    }
+
     // Wait for results to load with a longer timeout
     console.log('Waiting for results to load...');
     const searchResultsSelector = By.xpath("//div[contains(@class, 'listing')]");
@@ -132,90 +196,87 @@ async function scrapeGSALR(zipCode, radius = 10) {
         const listing = listingElements[i];
         
         // Extract sale information
-        const title = await listing.findElement(By.css('h4 a')).getText().catch(() => '');
-        const address = await listing.findElement(By.css('.address')).getText().catch(() => '');
-        const location = await listing.findElement(By.css('.location')).getText().catch(() => '');
-        const [city, stateZip] = location.split(',').map(s => s.trim());
-        const [state, zip] = stateZip ? stateZip.split(' ') : ['', ''];
+        const title = await listing.findElement(By.css('h2 a.sale-title')).getText().catch(() => '');
         
-        // Get date and time information
-        const dateTimeElement = await listing.findElement(By.css('.date-time')).catch(() => null);
-        let dateRange = '';
-        let timeRange = '';
+        // Extract address components
+        const addressElement = await listing.findElement(By.css('span[itemprop="streetAddress"]')).catch(() => null);
+        const address = addressElement ? (await addressElement.getText()).replace(/^\s*\S+\s+/, '') : ''; // Remove the icon
         
-        if (dateTimeElement) {
-          const dateTimeText = await dateTimeElement.getText();
-          [dateRange, timeRange] = dateTimeText.split('•').map(s => s.trim());
-        }
+        // Extract location (city, state, zip)
+        const locationElement = await listing.findElement(By.css('span[itemprop="addressLocality"]')).catch(() => null);
+        const stateElement = await listing.findElement(By.css('span[itemprop="addressRegion"]')).catch(() => null);
+        const zipElement = await listing.findElement(By.css('span[itemprop="postalCode"]')).catch(() => null);
         
-        let startDate = '';
-        let endDate = '';
-        let startTime = '';
-        let endTime = '';
+        const city = locationElement ? await locationElement.getText() : '';
+        const state = stateElement ? await stateElement.getText() : '';
+        const zip = zipElement ? await zipElement.getText() : '';
         
-        // Parse date range (e.g., "Jun 1 - Jun 2" or "Jun 1")
-        if (dateRange) {
-          const dates = dateRange.split('-').map(d => d.trim());
-          startDate = dates[0];
-          endDate = dates[1] || dates[0];
-        }
+        // Extract date range
+        const dateRangeElement = await listing.findElement(By.css('span[itemprop="startDate"]')).catch(() => null);
+        const endDateElement = await listing.findElement(By.css('span[itemprop="endDate"]')).catch(() => null);
         
-        // Parse time range (e.g., "8:00 AM - 3:00 PM")
-        if (timeRange) {
-          const times = timeRange.split('-').map(t => t.trim());
-          if (times.length === 2) {
-            startTime = times[0];
-            endTime = times[1];
-          }
-        }
+        let startDate = dateRangeElement ? await dateRangeElement.getAttribute('content') : '';
+        let endDate = endDateElement ? await endDateElement.getAttribute('content') : '';
         
-        // Get description and other details
-        const description = await listing.findElement(By.css('.description')).getText().catch(() => '');
-        const distanceText = await listing.findElement(By.css('.distance')).getText().catch(() => '');
-        const url = await listing.findElement(By.css('h4 a')).getAttribute('href').catch(() => '');
+        // Extract sale type
+        const saleTypeElement = await listing.findElement(By.css('.sale-type')).catch(() => null);
+        const saleType = saleTypeElement ? await saleTypeElement.getText() : '';
         
-        // Extract items for sale (if available)
-        const items = [];
-        const itemElements = await listing.findElements(By.css('.tags .tag')).catch(() => []);
+        // Extract description (first 200 chars)
+        const descriptionElement = await listing.findElement(By.css('p[itemprop="description"]')).catch(() => null);
+        let description = descriptionElement ? await descriptionElement.getText() : '';
+        description = description.length > 200 ? description.substring(0, 200) + '...' : description;
         
-        for (const item of itemElements) {
-          const itemText = await item.getText().catch(() => '');
-          if (itemText) items.push(itemText);
-        }
+        // Extract URL
+        const urlElement = await listing.findElement(By.css('a.sale-title')).catch(() => null);
+        const url = urlElement ? await urlElement.getAttribute('href') : '';
         
-        // Get price if available
-        const price = await listing.findElement(By.css('.price')).getText().catch(() => 'Free');
+        // Extract photo count if available
+        const photoCountElement = await listing.findElement(By.css('.photo-count')).catch(() => null);
+        const photoCount = photoCountElement ? await photoCountElement.getText() : '0';
         
-        sales.push({
-          id: url ? url.split('/').pop() : `sale-${i}`,
-          title: title || 'Garage Sale',
-          address: address || '',
-          city: city || '',
-          state: state || '',
-          zip: zip || '',
-          start_date: startDate,
-          end_date: endDate,
-          start_time: startTime,
-          end_time: endTime,
-          description: description || 'No description available',
-          distance: distanceText,
-          price: price,
-          items: items.length > 0 ? items : undefined,
-          url: url.startsWith('http') ? url : `https://www.gsalr.com${url}`
-        });
+        // Create the sale object
+        const sale = {
+          id: await listing.getAttribute('data-id') || '',
+          title: title,
+          address: address,
+          city: city,
+          state: state,
+          zipCode: zip,
+          startDate: startDate,
+          endDate: endDate,
+          description: description,
+          source: 'GSALR',
+          type: saleType,
+          url: url,
+          image: await listing.findElement(By.css('img')).getAttribute('src').catch(() => ''),
+          photoCount: parseInt(photoCount) || 0,
+          distance: 0, // Will be calculated later if needed
+          distanceUnit: 'mi',
+          price: 'Unknown', // Not available in the listing preview
+          preview: description.split('.').shift() + '...' // First sentence as preview
+        };
+        
+        sales.push(sale);
       } catch (error) {
-        console.error(`Error processing sale item ${i}:`, error);
-        continue;
+        console.error(`Error processing listing ${i}:`, error);
+        // Continue with next listing if one fails
       }
     }
     
+    console.log(`Successfully processed ${sales.length} listings`);
     return sales;
+    
   } catch (error) {
-    console.error('Error scraping GSALR:', error);
+    console.error('Error in scrapeGSALR:', error);
     throw new Error('Failed to scrape GSALR: ' + error.message);
   } finally {
     if (driver) {
-      await driver.quit();
+      try {
+        await driver.quit();
+      } catch (e) {
+        console.error('Error closing WebDriver:', e);
+      }
     }
   }
 }

@@ -1,22 +1,30 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
+    "compounds": [
+      {
+        "name": "Debug Full Stack",
+        "configurations": ["Debug Backend (Node.js)", "Launch Chrome"]
+      }
+    ],
     "configurations": [
-    {
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "Debug Backend (Node.js)",
+        "program": "${workspaceFolder}/server/index.js",
+        "env": {
+          "NODE_ENV": "development"
+        },
+        "runtimeArgs": ["--nolazy"],
+        "skipFiles": ["<node_internals>/**"]
+      },
+      {
         "name": "Launch Chrome",
         "request": "launch",
         "type": "chrome",
         "url": "http://localhost:3000",
         "webRoot": "${workspaceFolder}"
-    },
-        {
-            "type": "chrome",
-            "request": "launch",
-            "name": "Launch Chrome against localhost",
-            "url": "http://localhost:3000",
-            "webRoot": "${workspaceFolder}"
-        }
+      }
     ]
-}
+  }
+  
