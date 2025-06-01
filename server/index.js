@@ -17,6 +17,7 @@ const chromeOptions = new chrome.Options();
 // Basic Chrome options for better compatibility
 chromeOptions.addArguments([
   '--no-sandbox',
+  '--headless',
   '--disable-dev-shm-usage',
   '--disable-gpu',
   '--window-size=1920,1080',
@@ -127,6 +128,9 @@ async function scrapeGSALR(zipCode, radius = 10) {
       console.error('Error finding submit button after refresh:', err);
       throw err;
     });
+
+    // Wait for page to load after refresh
+    await driver.sleep(2000);
     
     console.log('Clicking submit button after refresh...');
     await submitButtonAfterRefresh.click();
@@ -303,17 +307,50 @@ app.get('/api/gsalr/search', async (req, res) => {
     
     const sales = await scrapeGSALR(zipCode, radius);
     
-    console.log(`Search completed. Found ${sales.length} sales.`);
+    // Filter out invalid entries (empty or missing required fields)
+    const validSales = sales.filter(sale => 
+      sale.id && 
+      sale.title && 
+      sale.city && 
+      sale.state &&
+      sale.address
+    );
+    
+    console.log(`Search completed. Found ${validSales.length} valid sales out of ${sales.length} total.`);
     console.log(`Total time: ${(Date.now() - startTime) / 1000} seconds`);
     
-    if (sales.length === 0) {
-      console.warn('Warning: No sales found for the given criteria');
+    if (validSales.length === 0) {
+      console.warn('Warning: No valid sales found for the given criteria');
+      return res.status(404).json({
+        success: false,
+        error: 'No garage sales found for the specified location',
+        timestamp: new Date().toISOString()
+      });
     }
     
+    // Transform the data to match the frontend's expected structure
+    const transformedSales = validSales.map(sale => ({
+      id: sale.id || '',
+      title: sale.title || 'Garage Sale',
+      address: sale.address || '',
+      city: sale.city || '',
+      state: sale.state || '',
+      zip: sale.zipCode || '',
+      start_date: sale.startDate || new Date().toISOString().split('T')[0],
+      end_date: sale.endDate || sale.startDate || new Date().toISOString().split('T')[0],
+      start_time: sale.startTime || '09:00',
+      end_time: sale.endTime || '17:00',
+      description: sale.description || 'No description available',
+      distance: `${sale.distance || 0} ${sale.distanceUnit || 'mi'}`,
+      items: [],
+      url: sale.url || `https://gsalr.com/sale/${sale.id}`
+    }));
+    
+    // Return the transformed data in the format expected by the frontend
     res.json({
       success: true,
-      count: sales.length,
-      data: sales,
+      count: transformedSales.length,
+      data: transformedSales,
       timestamp: new Date().toISOString()
     });
     
