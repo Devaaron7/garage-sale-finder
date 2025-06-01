@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { FaSadTear, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaLocationDot, FaFaceSadTear } from 'react-icons/fa6';
 import { GarageSale } from '../types';
 import GarageSaleCard from './GarageSaleCard';
 
@@ -71,7 +71,7 @@ const ResultsList: React.FC<ResultsListProps> = ({ sales, isLoading, hasSearched
     return (
       <EmptyState>
         <EmptyIcon>
-          <FaMapMarkerAlt />
+          <FaLocationDot />
         </EmptyIcon>
         <EmptyTitle>Find Garage Sales Near You</EmptyTitle>
         <EmptyMessage>Enter a zip code to discover garage sales in your area</EmptyMessage>
@@ -83,7 +83,7 @@ const ResultsList: React.FC<ResultsListProps> = ({ sales, isLoading, hasSearched
     return (
       <EmptyState>
         <EmptyIcon>
-          <FaSadTear />
+          <FaFaceSadTear />
         </EmptyIcon>
         <EmptyTitle>No Garage Sales Found</EmptyTitle>
         <EmptyMessage>Try adjusting your search criteria or check back later</EmptyMessage>

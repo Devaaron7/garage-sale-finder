@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { FaMapMarkerAlt, FaCalendarAlt, FaClock, FaTag, FaExternalLinkAlt } from 'react-icons/fa';
+import { FaLocationDot, FaCalendar, FaClock, FaTag, FaArrowUpRightFromSquare } from 'react-icons/fa6';
 import { GarageSale } from '../types';
 
 const Card = styled.article`
@@ -165,11 +165,11 @@ const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale }) => {
         
         <Meta>
           <MetaItem>
-            <FaMapMarkerAlt />
+            <FaLocationDot />
             <span>{sale.address}, {sale.city}, {sale.state} {sale.zipCode}</span>
           </MetaItem>
           <MetaItem>
-            <FaCalendarAlt />
+            <FaCalendar />
             <span>{formatDate(sale.startDate)}{sale.endDate && sale.endDate !== sale.startDate ? ` - ${formatDate(sale.endDate)}` : ''}</span>
           </MetaItem>
           <MetaItem>
@@ -188,7 +188,7 @@ const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale }) => {
         
         {sale.url && (
           <ViewDetails href={sale.url} target="_blank" rel="noopener noreferrer">
-            View details <FaExternalLinkAlt />
+            View details <FaArrowUpRightFromSquare />
           </ViewDetails>
         )}
       </Content>

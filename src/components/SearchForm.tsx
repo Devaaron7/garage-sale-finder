@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaSearch, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaMagnifyingGlass, FaLocationDot } from 'react-icons/fa6';
 import styled from 'styled-components';
 import { DataSource } from '../types';
 
@@ -121,7 +121,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
             onChange={(e) => setZipCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 5))}
             required
           />
-          <FaMapMarkerAlt 
+          <FaLocationDot 
             style={{
               position: 'absolute',
               right: '12px',
@@ -151,7 +151,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
       </FormGroup>
       
       <Button type="submit" disabled={isLoading || !zipCode || selectedSources.length === 0}>
-        <FaSearch />
+          <FaMagnifyingGlass />
         {isLoading ? 'Searching...' : 'Find Garage Sales'}
       </Button>
     </Form>

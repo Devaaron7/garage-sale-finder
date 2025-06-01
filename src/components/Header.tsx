@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { FaSearchDollar } from 'react-icons/fa';
+import { FaMagnifyingGlassDollar } from 'react-icons/fa6';
 
 const HeaderContainer = styled.header`
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
@@ -29,7 +29,7 @@ const Header: React.FC = () => {
   return (
     <HeaderContainer>
       <Title>
-        <FaSearchDollar />
+        <FaMagnifyingGlassDollar />
         Garage Sale Finder
       </Title>
       <Subtitle>Discover the best garage sales in your area</Subtitle>
