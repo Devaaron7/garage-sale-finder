@@ -1,57 +1,62 @@
 import axios from 'axios';
 import { GarageSale } from '../types';
 
-const GSALR_API_BASE = 'https://www.gsalr.com';
+// This should point to your backend API that will handle the web scraping
+// In development, this will proxy to http://localhost:3001
+const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+
+interface GSALRResponse {
+  id: string;
+  title: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  start_date: string;
+  end_date: string;
+  start_time: string;
+  end_time: string;
+  description: string;
+  distance: string;
+  items?: string[];
+  url: string;
+}
 
 export const searchGarageSales = async (zipCode: string, radius: number = 10): Promise<GarageSale[]> => {
   try {
-    // Note: GSALR doesn't have a public API, so this is a placeholder
-    // In a real implementation, you would need to use a web scraping solution
-    // or find if they provide an API for partners
-    
-    // For now, we'll return mock data
-    return [
-      {
-        id: '1',
-        title: 'Estate Sale - Everything Must Go!',
-        address: '123 Main St',
-        city: 'Anytown',
-        state: 'CA',
-        zipCode,
-        startDate: '2023-06-01',
-        endDate: '2023-06-02',
-        startTime: '08:00',
-        endTime: '15:00',
-        description: 'Moving sale! Furniture, electronics, tools, and more.',
-        source: 'GSALR',
-        distance: 0.5,
-        distanceUnit: 'mi',
-        price: 'Free',
-        preview: 'Furniture, Electronics, Tools',
-        url: `${GSALR_API_BASE}/sale/1`
-      },
-      {
-        id: '2',
-        title: 'Community Garage Sale',
-        address: '456 Oak Ave',
-        city: 'Anytown',
-        state: 'CA',
-        zipCode,
-        startDate: '2023-06-02',
-        endDate: '2023-06-02',
-        startTime: '09:00',
-        endTime: '14:00',
-        description: 'Multiple families participating. Something for everyone!',
-        source: 'GSALR',
-        distance: 1.2,
-        distanceUnit: 'mi',
-        price: 'Free',
-        preview: 'Clothing, Toys, Household Items',
-        url: `${GSALR_API_BASE}/sale/2`
+    // Call our backend API which will handle the web scraping
+    const response = await axios.get(`${API_BASE_URL}/gsalr/search`, {
+      params: { zipCode, radius },
+      headers: {
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache'
       }
-    ];
+    });
+
+    // Transform the API response to match our GarageSale type
+    const sales: GarageSale[] = response.data.map((sale: GSALRResponse) => ({
+      id: sale.id,
+      title: sale.title,
+      address: sale.address,
+      city: sale.city,
+      state: sale.state,
+      zipCode: sale.zip,
+      startDate: sale.start_date,
+      endDate: sale.end_date,
+      startTime: sale.start_time,
+      endTime: sale.end_time,
+      description: sale.description,
+      source: 'GSALR',
+      distance: parseFloat(sale.distance.replace(/[^0-9.]/g, '')),
+      distanceUnit: sale.distance.includes('mi') ? 'mi' : 'km',
+      preview: sale.items ? sale.items.join(', ') : '',
+      url: sale.url.startsWith('http') ? sale.url : `https://www.gsalr.com${sale.url}`
+    }));
+
+    return sales;
   } catch (error) {
-    console.error('Error searching GSALR:', error);
-    throw new Error('Failed to fetch garage sales from GSALR');
+    console.error('Error fetching garage sales from GSALR:', error);
+    // Return empty array on error to prevent breaking the UI
+    return [];
   }
 };
