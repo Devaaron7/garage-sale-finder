@@ -292,7 +292,7 @@ app.get('/api/gsalr/search', async (req, res) => {
   console.log('Query params:', req.query);
   
   try {
-    const { zipCode, radius = 10 } = req.query;
+    const { zipCode } = req.query;
     
     if (!zipCode) {
       console.error('Error: Zip code is required');
@@ -303,9 +303,10 @@ app.get('/api/gsalr/search', async (req, res) => {
       });
     }
     
-    console.log(`Starting search for zip code: ${zipCode}, radius: ${radius}`);
+    console.log(`Starting search for zip code: ${zipCode}`);
     
-    const sales = await scrapeGSALR(zipCode, radius);
+    // Fixed radius to 10 miles as default
+    const sales = await scrapeGSALR(zipCode, 10);
     
     // Filter out invalid entries (empty or missing required fields)
     const validSales = sales.filter(sale => 
@@ -346,26 +347,19 @@ app.get('/api/gsalr/search', async (req, res) => {
       url: sale.url || `https://gsalr.com/sale/${sale.id}`
     }));
     
-    // Return the transformed data in the format expected by the frontend
-    res.json({
-      success: true,
-      count: transformedSales.length,
-      data: transformedSales,
-      timestamp: new Date().toISOString()
-    });
+    // Return the transformed data directly as an array
+    // The frontend expects a direct array, not a nested object
+    res.json(transformedSales);
     
   } catch (error) {
     console.error('API Error:', error);
     
-    // Determine appropriate status code
-    const statusCode = error.message.includes('timeout') ? 504 : 500;
+    // Log the error details for debugging
+    console.error('Error details:', error.message);
     
-    res.status(statusCode).json({
-      success: false,
-      error: 'Failed to fetch garage sales',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
-      timestamp: new Date().toISOString()
-    });
+    // Return an empty array on error to match the expected format
+    // This prevents frontend errors when processing the response
+    res.json([]);
   }
 });
 

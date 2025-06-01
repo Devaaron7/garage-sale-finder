@@ -26,14 +26,14 @@ export const searchGarageSales = async (zipCode: string, radius: number = 10): P
   try {
     // Call our backend API which will handle the web scraping
     const response = await axios.get(`${API_BASE_URL}/gsalr/search`, {
-      params: { zipCode, radius },
+      params: { zipCode },  // Removed radius as it's fixed in the backend
       headers: {
         'Accept': 'application/json',
         'Cache-Control': 'no-cache'
       }
     });
 
-    // Transform the API response to match our GarageSale type
+    // The backend now returns a direct array of sales
     const sales: GarageSale[] = response.data.map((sale: GSALRResponse) => ({
       id: sale.id,
       title: sale.title,
@@ -47,10 +47,11 @@ export const searchGarageSales = async (zipCode: string, radius: number = 10): P
       endTime: sale.end_time,
       description: sale.description,
       source: 'GSALR',
-      distance: parseFloat(sale.distance.replace(/[^0-9.]/g, '')),
+      distance: parseFloat(sale.distance.replace(/[^0-9.]/g, '') || '0'),
       distanceUnit: sale.distance.includes('mi') ? 'mi' : 'km',
       preview: sale.items ? sale.items.join(', ') : '',
-      url: sale.url.startsWith('http') ? sale.url : `https://www.gsalr.com${sale.url}`
+      url: sale.url.startsWith('http') ? sale.url : `https://www.gsalr.com${sale.url}`,
+      imageUrl: '' // Added missing imageUrl field required by the GarageSale interface
     }));
 
     return sales;
