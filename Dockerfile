@@ -52,15 +52,15 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     && echo "Chrome version: $CHROME_VERSION" \
     && rm -rf /var/lib/apt/lists/*
 
-# Install ChromeDriver - using the latest version available
-RUN CHROME_MAJOR_VERSION=$(google-chrome --version | grep -o '[0-9]*' | head -1) \
-    && echo "Chrome major version: $CHROME_MAJOR_VERSION" \
-    && wget -q "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/120.0.6099.109/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip \
+# Install ChromeDriver with version 137.0.7151.68 to match Chrome
+RUN CHROMEDRIVER_VERSION="137.0.7151.68" \
+    && echo "Using ChromeDriver version: $CHROMEDRIVER_VERSION" \
+    && wget -q "https://storage.googleapis.com/chrome-for-testing-public/137.0.7151.68/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip \
     && unzip -o /tmp/chromedriver.zip -d /tmp/ \
     && mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/ \
     && chmod +x /usr/local/bin/chromedriver \
     && rm -rf /tmp/chromedriver.zip /tmp/chromedriver-linux64 \
-    && echo "ChromeDriver installed: $(chromedriver --version || echo 'ChromeDriver installation failed')"
+    && echo "ChromeDriver version: $(chromedriver --version || echo 'ChromeDriver installation failed')"
 
 # Set environment variables
 ENV CHROME_BIN=/usr/bin/google-chrome \
