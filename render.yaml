@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: garage-sale-finder
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: node server/index.js
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+    build:
+      dockerfile: Dockerfile

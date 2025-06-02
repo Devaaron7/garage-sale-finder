@@ -21,11 +21,12 @@ chromeOptions.addArguments([
   '--headless=new',
   '--disable-gpu',
   '--window-size=1920,1080',
-  '--start-maximized',
   '--disable-extensions',
-  '--disable-popup-blocking',
-  '--disable-notifications',
-  '--disable-infobars'
+  '--disable-software-rasterizer',
+  '--disable-setuid-sandbox',
+  '--disable-features=site-per-process',
+  '--disable-features=IsolateOrigins,site-per-process',
+  '--disable-blink-features=AutomationControlled'
 ]);
 
 // Run in non-headless mode for debugging
