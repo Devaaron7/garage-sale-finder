@@ -2,6 +2,7 @@
   "name": "garage-sale-finder",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://devaaron7.github.io/garage-sale-finder",
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -32,7 +33,9 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "server": "node server/index.js",
-    "dev": "concurrently \"npm run start\" \"npm run server\""
+    "dev": "concurrently \"npm run start\" \"npm run server\"",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "proxy": "http://localhost:3001",
   "eslintConfig": {
@@ -55,6 +58,7 @@
   },
   "devDependencies": {
     "chromedriver": "^137.0.0",
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "gh-pages": "^6.3.0"
   }
 }
