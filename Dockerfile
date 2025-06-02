@@ -52,8 +52,8 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     && echo "Chrome version: $CHROME_VERSION" \
     && rm -rf /var/lib/apt/lists/*
 
-# Install ChromeDriver with a fixed version
-RUN CHROMEDRIVER_VERSION="114.0.5735.90" \
+# Install ChromeDriver with a fixed version matching Chrome 137
+RUN CHROMEDRIVER_VERSION="137.0.7151.68" \
     && echo "Using fixed ChromeDriver version: $CHROMEDRIVER_VERSION" \
     && wget -q "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip" -O /tmp/chromedriver.zip \
     && unzip -o /tmp/chromedriver.zip -d /usr/local/bin/ \
