@@ -29,6 +29,10 @@ chromeOptions.addArguments([
   '--disable-blink-features=AutomationControlled'
 ]);
 
+// Set for running on Render.com
+chromeOptions.setChromeBinaryPath(process.env.CHROME_BIN);
+
+
 // Run in non-headless mode for debugging
 console.log('Running Chrome in non-headless mode for debugging');
 // Uncomment the line below to enable headless mode when everything works
@@ -43,6 +47,15 @@ async function scrapeGSALR(zipCode, radius = 10) {
   try {
     console.log('Initializing Chrome WebDriver...');
     try {
+
+      const driver = new Builder()
+  .forBrowser('chrome')
+  .setChromeOptions(chromeOptions)
+  .setChromeService(new chrome.ServiceBuilder(process.env.CHROMEDRIVER_PATH))
+  .build();
+
+
+      /* use this block for local development
       const builder = new Builder()
         .forBrowser('chrome')
         .setChromeOptions(chromeOptions);
@@ -50,6 +63,7 @@ async function scrapeGSALR(zipCode, radius = 10) {
       // Set the path to chromedriver if needed (uncomment and update the path)
       // builder.setChromeService(new ServiceBuilder('path/to/chromedriver'));
       driver = await builder.build();
+      */
       console.log('WebDriver initialized successfully');
     } catch (error) {
       console.error('Failed to initialize WebDriver:', error);
