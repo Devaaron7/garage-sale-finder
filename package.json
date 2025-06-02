@@ -35,7 +35,7 @@
     "server": "node server/index.js",
     "dev": "concurrently \"npm run start\" \"npm run server\"",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -b main -d build"
   },
   "proxy": "http://localhost:3001",
   "eslintConfig": {
