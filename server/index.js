@@ -4,7 +4,6 @@ const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const os = require('os');
 const path = require('path');
-const chromedriverPath = require('chromedriver').path;
 
 
 const app = express();
@@ -73,14 +72,10 @@ async function scrapeGSALR(zipCode, radius = 10) {
     console.log('Initializing Chrome WebDriver...');
     try {
 
-      // Configure ChromeDriver service
-      const serviceBuilder = new chrome.ServiceBuilder(chromedriverPath);
-      
       // Create the WebDriver instance
       const driver = await new Builder()
         .forBrowser('chrome')
         .setChromeOptions(chromeOptions)
-        .setChromeService(serviceBuilder)
         .build();
       console.log('WebDriver initialized successfully');
     } catch (error) {
