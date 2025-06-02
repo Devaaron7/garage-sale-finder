@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#f3f4f6"/>
+  <g fill="#9ca3af">
+    <path d="M200 100 L240 160 L160 160 Z"/>
+    <rect x="160" y="160" width="80" height="60"/>
+    <rect x="185" y="190" width="30" height="30"/>
+  </g>
+  <text x="200" y="240" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="#4b5563">No Image Available</text>
+  <text x="200" y="260" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#6b7280">Garage Sale</text>
+</svg>

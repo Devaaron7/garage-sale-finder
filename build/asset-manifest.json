@@ -1,0 +1,12 @@
+{
+  "files": {
+    "main.js": "/garage-sale-finder/static/js/main.03f3917b.js",
+    "static/js/453.0ed84e88.chunk.js": "/garage-sale-finder/static/js/453.0ed84e88.chunk.js",
+    "index.html": "/garage-sale-finder/index.html",
+    "main.03f3917b.js.map": "/garage-sale-finder/static/js/main.03f3917b.js.map",
+    "453.0ed84e88.chunk.js.map": "/garage-sale-finder/static/js/453.0ed84e88.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.03f3917b.js"
+  ]
+}
