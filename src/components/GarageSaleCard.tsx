@@ -23,7 +23,7 @@ interface ImageContainerProps {
 const ImageContainer = styled.div<ImageContainerProps>`
   height: 160px;
   background-color: #f3f4f6;
-  background-image: ${({ $imageUrl }) => $imageUrl ? `url(${$imageUrl})` : 'url(https://via.placeholder.com/400x300?text=No+Image)'};
+  background-image: ${({ $imageUrl }) => $imageUrl ? `url(${$imageUrl})` : 'url(/garage-sale-placeholder.svg)'};
   background-size: cover;
   background-position: center;
   position: relative;
@@ -249,13 +249,13 @@ const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale }) => {
       <div style={{ position: 'relative' }}>
         <ImageContainer 
           $imageUrl={sale.imageUrl} 
-          onClick={handleImageClick} 
+          onClick={sale.imageUrl ? handleImageClick : undefined} 
           data-testid="image-container"
         />
-        {sale.photoCount && sale.photoCount > 0 && (
+        {sale.imageUrl && sale.photoCount && sale.photoCount > 0 && (
           <PhotoCountBadge>
             <FaCamera />
-            {sale.photoCount} {sale.photoCount === 1 ? 'photo' : 'photos'}
+            <span>{sale.photoCount} {sale.photoCount === 1 ? 'photo' : 'photos'}</span>
           </PhotoCountBadge>
         )}
       </div>
@@ -264,11 +264,7 @@ const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale }) => {
           <Title>{sale.title}</Title>
           {sale.preview && <Preview>{sale.preview}</Preview>}
           <SourceBadge>{sale.source}</SourceBadge>
-          {sale.distance !== undefined && (
-            <DistanceBadge>
-              {sale.distance} {sale.distanceUnit || 'mi'} away
-            </DistanceBadge>
-          )}
+
         </Header>
         
         <Meta>
@@ -276,14 +272,7 @@ const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale }) => {
             <FaLocationDot />
             <span>{sale.address}, {sale.city}, {sale.state} {sale.zipCode}</span>
           </MetaItem>
-          <MetaItem>
-            <FaCalendar />
-            <span>{formatDate(sale.startDate)}{sale.endDate && sale.endDate !== sale.startDate ? ` - ${formatDate(sale.endDate)}` : ''}</span>
-          </MetaItem>
-          <MetaItem>
-            <FaClock />
-            <span>{formatTime(sale.startTime)} - {formatTime(sale.endTime)}</span>
-          </MetaItem>
+
           {sale.price && (
             <MetaItem>
               <FaTag />
@@ -291,8 +280,6 @@ const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale }) => {
             </MetaItem>
           )}
         </Meta>
-        
-        {sale.description && <Description>{sale.description}</Description>}
         
         {sale.url && (
           <ViewDetails href={sale.url} target="_blank" rel="noopener noreferrer">
@@ -312,7 +299,7 @@ const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale }) => {
                 console.error('Error loading image:', sale.imageUrl);
                 const target = e.target as HTMLImageElement;
                 target.onerror = null; // Prevent infinite error loop
-                target.src = 'https://via.placeholder.com/800x600?text=Image+Not+Available';
+                target.src = '/garage-sale-placeholder.svg';
               }}
             />
             <CloseButton onClick={handleClosePopup} aria-label="Close image">
