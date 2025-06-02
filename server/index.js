@@ -17,8 +17,8 @@ const chromeOptions = new chrome.Options();
 // Basic Chrome options for better compatibility
 chromeOptions.addArguments([
   '--no-sandbox',
-  '--headless',
   '--disable-dev-shm-usage',
+  '--headless=new',
   '--disable-gpu',
   '--window-size=1920,1080',
   '--start-maximized',
@@ -99,44 +99,118 @@ async function scrapeGSALR(zipCode, radius = 10) {
     console.log('Clicking submit button...');
     await submitButton.click();
 
-    // Refresh the page to avoid popups
-    console.log('Refreshing page to avoid popups...');
-    await driver.navigate().refresh();
-    
-    // Wait for page to load after refresh
-    await driver.sleep(2000);
-    
-    // Re-enter zip code
-    console.log('Re-entering zip code after refresh...');
-    const zipInputAfterRefresh = await driver.wait(
-      until.elementLocated(By.xpath("//input[@class='city-loc-set']")),
-      10000
-    ).catch(err => {
-      console.error('Error finding zip code input after refresh:', err);
-      throw err;
-    });
-    
-    await zipInputAfterRefresh.clear();
-    await zipInputAfterRefresh.sendKeys(zipCode);
-    
-    // Find and click the submit button again
-    console.log('Finding and clicking submit button after refresh...');
-    const submitButtonAfterRefresh = await driver.wait(
-      until.elementLocated(By.xpath("//a[@class='button postfix radius button-city-loc-set']")),
-      10000
-    ).catch(err => {
-      console.error('Error finding submit button after refresh:', err);
-      throw err;
-    });
-
-    // Wait for page to load after refresh
-    await driver.sleep(2000);
-    
-    console.log('Clicking submit button after refresh...');
-    await submitButtonAfterRefresh.click();
-    
-    // Wait for the page to process the submission
+    // Check if subscribe form exists
+    console.log('Checking for subscribe form...');
     await driver.sleep(3000);
+    let subscribeFormExists = false;
+    try {
+      const subscribeForm = await driver.findElement(By.xpath("//div[@id='subscribeForm']"));
+      if (subscribeForm) {
+        console.log('Subscribe form found, skipping page refresh');
+        subscribeFormExists = true;
+
+        // Handle the second popup (non-shadow DOM)
+        await driver.sleep(3000);
+        try {
+          const secondPopupClose = await driver.wait(
+            until.elementLocated(By.xpath("(//div[@class='close-reveal-modal'])[2]")),
+            5000 // Shorter timeout since this popup might not appear
+          );
+          
+          if (secondPopupClose) {
+            console.log('Closing Subscribe form...');
+            await secondPopupClose.click();
+            console.log('Second popup closed');
+            // Small delay after closing popup
+            await driver.sleep(1000);
+          }
+        } catch (error) {
+          console.log('No second popup found or error closing it:', error.message);
+        }
+      }
+    } catch (error) {
+      console.log('Subscribe form not found:', error.message);
+    }
+
+    // Only refresh the page if subscribe form doesn't exist
+    if (!subscribeFormExists) {
+      console.log('Refreshing page to avoid popups...');
+      await driver.navigate().refresh();
+      
+      // Wait for page to load after refresh
+      await driver.sleep(2000);
+      
+      // Try multiple selectors for the zip code input
+      let zipInputAfterRefresh = null;
+      const possibleSelectors = [
+        By.xpath("//input[@class='city-loc-set']"),
+        By.css("input.city-loc-set"),
+        By.css("input[placeholder='City or Zip']"),
+        By.css("input[type='text']"),
+        By.id("city-loc-set")
+      ];
+      
+      for (const selector of possibleSelectors) {
+        try {
+          console.log(`Trying selector: ${selector.toString()}`);
+          zipInputAfterRefresh = await driver.wait(
+            until.elementLocated(selector),
+            5000
+          );
+          if (zipInputAfterRefresh) {
+            console.log('Found zip code input with selector:', selector.toString());
+            break;
+          }
+        } catch (selectorError) {
+          console.log(`Selector ${selector.toString()} failed:`, selectorError.message);
+        }
+      }
+      
+      if (!zipInputAfterRefresh) {
+        console.error('Could not find zip code input with any selector');
+        throw new Error('Failed to locate zip code input field');
+      }
+      
+      await zipInputAfterRefresh.clear();
+      await zipInputAfterRefresh.sendKeys(zipCode);
+        
+      // Try multiple selectors for the submit button
+      let submitButtonAfterRefresh = null;
+      const possibleButtonSelectors = [
+        By.xpath("//a[@class='button postfix radius button-city-loc-set']"),
+        By.css("a.button.postfix.radius.button-city-loc-set"),
+        By.css("a.button"),
+        By.css("button[type='submit']"),
+        By.css("input[type='submit']")
+      ];
+      
+      for (const selector of possibleButtonSelectors) {
+        try {
+          console.log(`Trying button selector: ${selector.toString()}`);
+          submitButtonAfterRefresh = await driver.wait(
+            until.elementLocated(selector),
+            5000
+          );
+          if (submitButtonAfterRefresh) {
+            console.log('Found submit button with selector:', selector.toString());
+            break;
+          }
+        } catch (selectorError) {
+          console.log(`Button selector ${selector.toString()} failed:`, selectorError.message);
+        }
+      }
+      
+      if (!submitButtonAfterRefresh) {
+        console.error('Could not find submit button with any selector');
+        throw new Error('Failed to locate submit button');
+      }
+      
+      console.log('Clicking submit button...');
+      await submitButtonAfterRefresh.click();
+      
+      // Wait for the page to process the submission
+      await driver.sleep(3000);
+      }
 
 
     // Handle the second popup (non-shadow DOM)
@@ -253,7 +327,31 @@ async function scrapeGSALR(zipCode, radius = 10) {
           source: 'GSALR',
           type: saleType,
           url: url,
-          image: await listing.findElement(By.css('img')).getAttribute('src').catch(() => ''),
+          image: await (async () => {
+            try {
+              // Log the entire listing HTML for debugging
+              const listingHtml = await listing.getAttribute('outerHTML');
+              console.log(`Listing ${i} HTML:`, listingHtml.substring(0, 200) + '...');
+              
+              // First try to get the thumbnail image
+              const thumbImg = await listing.findElement(By.css('.thumb img'));
+              const imgSrc = await thumbImg.getAttribute('src');
+              console.log(`Found image for listing ${i}:`, imgSrc);
+              return imgSrc;
+            } catch (thumbError) {
+              console.log(`Could not find .thumb img for listing ${i}:`, thumbError.message);
+              try {
+                // Try any image in the listing
+                const anyImg = await listing.findElement(By.css('img'));
+                const imgSrc = await anyImg.getAttribute('src');
+                console.log(`Found alternative image for listing ${i}:`, imgSrc);
+                return imgSrc;
+              } catch (imgError) {
+                console.log(`Could not find any image for listing ${i}:`, imgError.message);
+                return '';
+              }
+            }
+          })(),
           photoCount: parseInt(photoCount) || 0,
           distance: 0, // Will be calculated later if needed
           distanceUnit: 'mi',
@@ -330,22 +428,30 @@ app.get('/api/gsalr/search', async (req, res) => {
     }
     
     // Transform the data to match the frontend's expected structure
-    const transformedSales = validSales.map(sale => ({
-      id: sale.id || '',
-      title: sale.title || 'Garage Sale',
-      address: sale.address || '',
-      city: sale.city || '',
-      state: sale.state || '',
-      zip: sale.zipCode || '',
-      start_date: sale.startDate || new Date().toISOString().split('T')[0],
-      end_date: sale.endDate || sale.startDate || new Date().toISOString().split('T')[0],
-      start_time: sale.startTime || '09:00',
-      end_time: sale.endTime || '17:00',
-      description: sale.description || 'No description available',
-      distance: `${sale.distance || 0} ${sale.distanceUnit || 'mi'}`,
-      items: [],
-      url: sale.url || `https://gsalr.com/sale/${sale.id}`
-    }));
+    const transformedSales = validSales.map(sale => {
+      // Log the image URL for debugging
+      console.log(`Sale ${sale.id} image URL:`, sale.image);
+      
+      return {
+        id: sale.id || '',
+        title: sale.title || 'Garage Sale',
+        address: sale.address || '',
+        city: sale.city || '',
+        state: sale.state || '',
+        zip: sale.zipCode || '',
+        start_date: sale.startDate || new Date().toISOString().split('T')[0],
+        end_date: sale.endDate || sale.startDate || new Date().toISOString().split('T')[0],
+        start_time: sale.startTime || '09:00',
+        end_time: sale.endTime || '17:00',
+        description: sale.description || 'No description available',
+        distance: `${sale.distance || 0} ${sale.distanceUnit || 'mi'}`,
+        items: [],
+        url: sale.url || `https://gsalr.com/sale/${sale.id}`,
+        imageUrl: sale.image || '',
+        photoCount: sale.photoCount || 0,
+        source: sale.source || 'GSALR'
+      };
+    });
     
     // Return the transformed data directly as an array
     // The frontend expects a direct array, not a nested object

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { FaLocationDot, FaCalendar, FaClock, FaTag, FaArrowUpRightFromSquare } from 'react-icons/fa6';
+import { FaLocationDot, FaCalendar, FaClock, FaTag, FaArrowUpRightFromSquare, FaCamera, FaXmark } from 'react-icons/fa6';
 import { GarageSale } from '../types';
 
 const Card = styled.article`
@@ -16,13 +16,19 @@ const Card = styled.article`
   }
 `;
 
-const ImageContainer = styled.div<{ imageUrl?: string }>`
+interface ImageContainerProps {
+  $imageUrl?: string;
+}
+
+const ImageContainer = styled.div<ImageContainerProps>`
   height: 160px;
   background-color: #f3f4f6;
-  background-image: ${({ imageUrl }) => imageUrl ? `url(${imageUrl})` : 'none'};
+  background-image: ${({ $imageUrl }) => $imageUrl ? `url(${$imageUrl})` : 'url(https://via.placeholder.com/400x300?text=No+Image)'};
   background-size: cover;
   background-position: center;
   position: relative;
+  cursor: ${({ $imageUrl }) => $imageUrl ? 'pointer' : 'default'};
+  overflow: hidden;
   
   &::before {
     content: '';
@@ -32,6 +38,73 @@ const ImageContainer = styled.div<{ imageUrl?: string }>`
     right: 0;
     bottom: 0;
     background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%);
+  }
+`;
+
+const PhotoCountBadge = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+`;
+
+const ImagePopup = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+`;
+
+const PopupContent = styled.div`
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+`;
+
+const PopupImage = styled.img`
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  display: block;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.25rem;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.9);
   }
 `;
 
@@ -129,6 +202,7 @@ interface GarageSaleCardProps {
 }
 
 const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale }) => {
+  const [showImagePopup, setShowImagePopup] = useState(false);
   const formatDate = (dateStr: string) => {
     const options: Intl.DateTimeFormatOptions = { 
       weekday: 'short', 
@@ -148,9 +222,43 @@ const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale }) => {
     return `${hour12}:${minutes} ${ampm}`;
   };
 
+  const handleImageClick = () => {
+    if (sale.imageUrl && sale.imageUrl.trim() !== '') {
+      console.log('Opening image popup for:', sale.imageUrl);
+      setShowImagePopup(true);
+    } else {
+      console.log('No image URL available to show in popup');
+    }
+  };
+
+  const handleClosePopup = () => {
+    setShowImagePopup(false);
+  };
+
+  // Debug: Log detailed image URL information to console
+  console.log(`Rendering card for sale ${sale.id}:`, { 
+    title: sale.title,
+    imageUrl: sale.imageUrl,
+    hasImageUrl: !!sale.imageUrl,
+    imageUrlLength: sale.imageUrl?.length,
+    photoCount: sale.photoCount
+  });
+
   return (
     <Card>
-      {sale.imageUrl && <ImageContainer imageUrl={sale.imageUrl} />}
+      <div style={{ position: 'relative' }}>
+        <ImageContainer 
+          $imageUrl={sale.imageUrl} 
+          onClick={handleImageClick} 
+          data-testid="image-container"
+        />
+        {sale.photoCount && sale.photoCount > 0 && (
+          <PhotoCountBadge>
+            <FaCamera />
+            {sale.photoCount} {sale.photoCount === 1 ? 'photo' : 'photos'}
+          </PhotoCountBadge>
+        )}
+      </div>
       <Content>
         <Header>
           <Title>{sale.title}</Title>
@@ -192,6 +300,27 @@ const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale }) => {
           </ViewDetails>
         )}
       </Content>
+      {showImagePopup && sale.imageUrl && (
+        <ImagePopup onClick={handleClosePopup}>
+          <PopupContent onClick={(e) => e.stopPropagation()}>
+            <PopupImage 
+              src={sale.imageUrl} 
+              alt={`${sale.title} - Full size image`} 
+              onLoad={() => console.log('Image loaded successfully in popup:', sale.imageUrl)}
+              onError={(e) => {
+                // Handle image loading errors
+                console.error('Error loading image:', sale.imageUrl);
+                const target = e.target as HTMLImageElement;
+                target.onerror = null; // Prevent infinite error loop
+                target.src = 'https://via.placeholder.com/800x600?text=Image+Not+Available';
+              }}
+            />
+            <CloseButton onClick={handleClosePopup} aria-label="Close image">
+              <FaXmark />
+            </CloseButton>
+          </PopupContent>
+        </ImagePopup>
+      )}
     </Card>
   );
 };

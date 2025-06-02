@@ -20,6 +20,9 @@ interface GSALRResponse {
   distance: string;
   items?: string[];
   url: string;
+  imageUrl?: string;
+  photoCount?: number;
+  source?: string;
 }
 
 export const searchGarageSales = async (zipCode: string, radius: number = 10): Promise<GarageSale[]> => {
@@ -51,7 +54,8 @@ export const searchGarageSales = async (zipCode: string, radius: number = 10): P
       distanceUnit: sale.distance.includes('mi') ? 'mi' : 'km',
       preview: sale.items ? sale.items.join(', ') : '',
       url: sale.url.startsWith('http') ? sale.url : `https://www.gsalr.com${sale.url}`,
-      imageUrl: '' // Added missing imageUrl field required by the GarageSale interface
+      imageUrl: sale.imageUrl || '',
+      photoCount: sale.photoCount || 0
     }));
 
     return sales;

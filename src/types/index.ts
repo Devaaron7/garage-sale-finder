@@ -17,6 +17,7 @@ export interface GarageSale {
   price?: string;
   preview?: string;
   url?: string;
+  photoCount?: number;
 }
 
 export interface SearchFilters {
