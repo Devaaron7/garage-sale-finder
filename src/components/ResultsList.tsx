@@ -8,6 +8,20 @@ const Container = styled.div`
   margin-top: 2rem;
 `;
 
+const ResultsHeader = styled.div`
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const ResultsCount = styled.h2`
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+`;
+
 const Grid = styled.div`
   display: grid;
   grid-template-columns: 1fr;
@@ -93,6 +107,11 @@ const ResultsList: React.FC<ResultsListProps> = ({ sales, isLoading, hasSearched
 
   return (
     <Container>
+      <ResultsHeader>
+        <ResultsCount>
+          {sales.length} {sales.length === 1 ? 'Garage Sale' : 'Garage Sales'} Found
+        </ResultsCount>
+      </ResultsHeader>
       <Grid>
         {sales.map((sale) => (
           <GarageSaleCard key={`${sale.source}-${sale.id}`} sale={sale} />
