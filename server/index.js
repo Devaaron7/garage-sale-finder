@@ -2,7 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
-const { ServiceBuilder } = require('selenium-webdriver/chrome');
+const os = require('os');
+const path = require('path');
+const chromedriverPath = require('chromedriver').path;
+
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -11,11 +14,14 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Determine the operating system
+const isWindows = os.platform() === 'win32';
+
 // Configure Chrome options
 const chromeOptions = new chrome.Options();
 
-// Basic Chrome options for better compatibility
-chromeOptions.addArguments([
+// Common Chrome options for better compatibility
+const chromeArgs = [
   '--no-sandbox',
   '--disable-dev-shm-usage',
   '--headless=new',
@@ -24,19 +30,38 @@ chromeOptions.addArguments([
   '--disable-extensions',
   '--disable-software-rasterizer',
   '--disable-setuid-sandbox',
-  '--disable-features=site-per-process',
-  '--disable-features=IsolateOrigins,site-per-process',
+  '--disable-features=site-per-process,IsolateOrigins',
   '--disable-blink-features=AutomationControlled'
-]);
+];
 
-// Set for running on Render.com
-chromeOptions.setChromeBinaryPath(process.env.CHROME_BIN);
+// Add OS-specific arguments if needed
+if (!isWindows) {
+  chromeArgs.push('--disable-dev-shm-usage');
+}
 
+chromeOptions.addArguments(chromeArgs);
 
-// Run in non-headless mode for debugging
-console.log('Running Chrome in non-headless mode for debugging');
-// Uncomment the line below to enable headless mode when everything works
-// chromeOptions.addArguments('--headless=new');
+// Set Chrome binary path based on environment
+if (isWindows) {
+  // Default install paths for Windows
+  const windowsPaths = [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+  ];
+  
+  // Try to find Chrome in common locations
+  for (const chromePath of windowsPaths) {
+    if (require('fs').existsSync(chromePath)) {
+      chromeOptions.setChromeBinaryPath(chromePath);
+      console.log(`Using Chrome at: ${chromePath}`);
+      break;
+    }
+  }
+} else {
+  // For Linux (Render.com)
+  chromeOptions.setChromeBinaryPath(process.env.CHROME_BIN || '/usr/bin/chromium-browser');
+  console.log('Using Chrome from CHROME_BIN environment variable');
+}
 
 // Set Chrome binary path if needed (uncomment and update the path)
 // chromeOptions.setChromeBinaryPath('C:/Program Files/Google/Chrome/Application/chrome.exe');
@@ -48,22 +73,15 @@ async function scrapeGSALR(zipCode, radius = 10) {
     console.log('Initializing Chrome WebDriver...');
     try {
 
-      const driver = new Builder()
-  .forBrowser('chrome')
-  .setChromeOptions(chromeOptions)
-  .setChromeService(new chrome.ServiceBuilder(process.env.CHROMEDRIVER_PATH))
-  .build();
-
-
-      /* use this block for local development
-      const builder = new Builder()
-        .forBrowser('chrome')
-        .setChromeOptions(chromeOptions);
+      // Configure ChromeDriver service
+      const serviceBuilder = new chrome.ServiceBuilder(chromedriverPath);
       
-      // Set the path to chromedriver if needed (uncomment and update the path)
-      // builder.setChromeService(new ServiceBuilder('path/to/chromedriver'));
-      driver = await builder.build();
-      */
+      // Create the WebDriver instance
+      const driver = await new Builder()
+        .forBrowser('chrome')
+        .setChromeOptions(chromeOptions)
+        .setChromeService(serviceBuilder)
+        .build();
       console.log('WebDriver initialized successfully');
     } catch (error) {
       console.error('Failed to initialize WebDriver:', error);
