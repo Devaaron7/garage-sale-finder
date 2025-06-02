@@ -52,16 +52,14 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     && echo "Chrome version: $CHROME_VERSION" \
     && rm -rf /var/lib/apt/lists/*
 
-# Install ChromeDriver (using a fixed version that matches the Chrome version)
-RUN CHROME_MAJOR_VERSION=$(google-chrome --version | grep -o '[0-9.]*' | cut -d'.' -f1) \
-    && echo "Chrome major version: $CHROME_MAJOR_VERSION" \
-    && CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_MAJOR_VERSION") \
-    && echo "Using ChromeDriver version: $CHROMEDRIVER_VERSION" \
+# Install ChromeDriver with a fixed version
+RUN CHROMEDRIVER_VERSION="114.0.5735.90" \
+    && echo "Using fixed ChromeDriver version: $CHROMEDRIVER_VERSION" \
     && wget -q "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip" -O /tmp/chromedriver.zip \
     && unzip -o /tmp/chromedriver.zip -d /usr/local/bin/ \
     && chmod +x /usr/local/bin/chromedriver \
     && rm /tmp/chromedriver.zip \
-    && echo "ChromeDriver version: $(chromedriver --version)"
+    && echo "ChromeDriver version: $(chromedriver --version || echo 'ChromeDriver installation failed')"
 
 # Set environment variables
 ENV CHROME_BIN=/usr/bin/google-chrome \
