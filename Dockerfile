@@ -58,10 +58,13 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY yarn.lock ./
 
 # Install app dependencies
-RUN npm install
+RUN if [ -f yarn.lock ]; then \
+      yarn install --frozen-lockfile; \
+    else \
+      npm install; \
+    fi
 
 # Copy the rest of the app
 COPY . .
