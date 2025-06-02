@@ -71,9 +71,8 @@ async function scrapeGSALR(zipCode, radius = 10) {
   try {
     console.log('Initializing Chrome WebDriver...');
     try {
-
       // Create the WebDriver instance
-      const driver = await new Builder()
+      driver = await new Builder()
         .forBrowser('chrome')
         .setChromeOptions(chromeOptions)
         .build();
