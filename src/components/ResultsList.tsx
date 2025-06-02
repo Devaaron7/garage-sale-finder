@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaLocationDot, FaFaceSadTear } from 'react-icons/fa6';
 import { GarageSale } from '../types';
@@ -61,6 +61,35 @@ const EmptyMessage = styled.p`
   margin: 0;
 `;
 
+const LoadingContainer = styled.div`
+  margin-bottom: 2rem;
+  text-align: center;
+`;
+
+const LoadingBar = styled.div`
+  width: 100%;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 1rem 0;
+`;
+
+const LoadingProgress = styled.div<{ width: number }>`
+  height: 100%;
+  width: ${props => props.width}%;
+  background-color: #3b82f6;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+`;
+
+const LoadingText = styled.p`
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0.5rem 0 0;
+  font-style: italic;
+`;
+
 interface ResultsListProps {
   sales: GarageSale[];
   isLoading: boolean;
@@ -68,9 +97,45 @@ interface ResultsListProps {
 }
 
 const ResultsList: React.FC<ResultsListProps> = ({ sales, isLoading, hasSearched }) => {
+  const [progress, setProgress] = useState(0);
+  const [loadingStage, setLoadingStage] = useState('Initializing search...');
+  
+  useEffect(() => {
+    if (isLoading) {
+      // Reset progress when loading starts
+      setProgress(0);
+      setLoadingStage('Initializing search...');
+      
+      // Simulate progress in stages
+      const stages = [
+        { progress: 10, text: 'Connecting to data sources...' },
+        { progress: 25, text: 'Searching for garage sales...' },
+        { progress: 40, text: 'Collecting listing details...' },
+        { progress: 60, text: 'Processing images...' },
+        { progress: 80, text: 'Filtering results...' },
+        { progress: 95, text: 'Finalizing results...' }
+      ];
+      
+      // Create timeouts for each stage
+      stages.forEach((stage, index) => {
+        setTimeout(() => {
+          setProgress(stage.progress);
+          setLoadingStage(stage.text);
+        }, (index + 1) * 1200); // Stagger the stages
+      });
+    }
+  }, [isLoading]);
+  
   if (isLoading) {
     return (
       <Container>
+        <LoadingContainer>
+          <h3>Searching for Garage Sales</h3>
+          <LoadingBar>
+            <LoadingProgress width={progress} />
+          </LoadingBar>
+          <LoadingText>{loadingStage}</LoadingText>
+        </LoadingContainer>
         <Grid>
           {[...Array(6)].map((_, i) => (
             <div key={i} style={{ height: '400px', background: '#f3f4f6', borderRadius: '8px' }} />
