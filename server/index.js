@@ -28,7 +28,7 @@ const chromeOptions = new chrome.Options();
 const chromeArgs = [
   '--no-sandbox',
   '--disable-dev-shm-usage',
-  '--headless',
+  '--headless=new',
   '--disable-gpu',
   '--window-size=1280,720',
   '--disable-extensions',
@@ -44,8 +44,7 @@ const chromeArgs = [
   '--disable-prompt-on-repost',
   '--disable-client-side-phishing-detection',
   '--disable-component-update',
-  '--metrics-recording-only',
-  '--remote-debugging-port=9222'
+  '--metrics-recording-only'
 ];
 
 // Add OS-specific arguments if needed
@@ -94,10 +93,10 @@ async function scrapeGSALR(zipCode, radius = 10) {
       
       // Initialize WebDriver with more robust configuration
       console.log('Initializing Chrome WebDriver...');
-      // In the Alpine image, ChromeDriver is already in the PATH
-      console.log('Using ChromeDriver from PATH');
+      // Simple WebDriver initialization
+      console.log('Using Chrome from PATH');
       
-      // Create a simpler configuration for Alpine
+      // Create a simple configuration
       driver = await new Builder()
         .forBrowser('chrome')
         .setChromeOptions(chromeOptions)
