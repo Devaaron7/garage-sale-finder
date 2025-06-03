@@ -1,5 +1,6 @@
 import { GarageSale, DataSource } from '../types';
 import { searchGarageSales as searchGSALR } from './gsalrService';
+import { searchCraigslistGarageSales } from './craigslistService';
 
 export const DATA_SOURCES: DataSource[] = [
   {
@@ -8,20 +9,35 @@ export const DATA_SOURCES: DataSource[] = [
     url: 'https://www.gsalr.com',
     enabled: true
   },
+  {
+    id: 'craigslist',
+    name: 'Craigslist',
+    url: 'https://www.craigslist.org',
+    enabled: true
+  }
   // Add more data sources here as they're implemented
 ];
 
-export const searchAllSources = async (zipCode: string, radius: number = 10): Promise<GarageSale[]> => {
-  const enabledSources = DATA_SOURCES.filter(source => source.enabled);
+export const searchAllSources = async (location: string, radius: number = 10, selectedSourceIds: string[] = []): Promise<GarageSale[]> => {
+  // Filter sources by both enabled status and selected sources
+  const sourcesToSearch = DATA_SOURCES.filter(source => 
+    source.enabled && 
+    (selectedSourceIds.length === 0 || selectedSourceIds.includes(source.id))
+  );
   const results: GarageSale[] = [];
   
-  for (const source of enabledSources) {
+  for (const source of sourcesToSearch) {
     try {
       let sourceResults: GarageSale[] = [];
       
       switch (source.id) {
         case 'gsalr':
-          sourceResults = await searchGSALR(zipCode, radius);
+          console.log(`Searching GSALR with location: ${location}`);
+          sourceResults = await searchGSALR(location, radius);
+          break;
+        case 'craigslist':
+          console.log(`Searching Craigslist with city: ${location}`);
+          sourceResults = await searchCraigslistGarageSales(location);
           break;
         // Add cases for other sources here
       }

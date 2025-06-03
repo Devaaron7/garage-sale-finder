@@ -4,6 +4,7 @@ const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const os = require('os');
 const path = require('path');
+const Craigslist = require('node-craigslist');
 
 
 const app = express();
@@ -15,7 +16,7 @@ app.use(express.json());
 
 // Health check endpoint for Railway
 app.get('/', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'Garage Sale Finder API is running' });
+  res.status(200).json({ status: 'ok', message: 'Garage Sale Finder API is running', sources: ['gsalr', 'craigslist'] });
 });
 
 // Determine the operating system
@@ -415,10 +416,6 @@ async function scrapeGSALR(zipCode, radius = 10) {
     console.log(`Successfully processed ${sales.length} listings`);
     return sales;
     
-      // Process the results and return sales data
-      console.log(`Successfully processed ${sales.length} listings`);
-      return sales;
-      
     } catch (error) {
       lastError = error;
       console.error(`Attempt ${retryCount + 1}/${maxRetries} failed:`, error);
@@ -471,27 +468,97 @@ async function scrapeGSALR(zipCode, radius = 10) {
     throw new Error('Failed to scrape GSALR: ' + lastError.message);
   }
   
-  // This should never happen if we have proper error handling
-  throw new Error('Failed to scrape GSALR: Unknown error');
+  return [];
 }
+
+// API endpoint for Craigslist search
+app.get('/api/craigslist/search', async (req, res) => {
+  const startTime = Date.now();
+  console.log(`\n=== New Craigslist Request: ${new Date().toISOString()} ===`);
+  
+  try {
+    // Accept 'city' parameter for Craigslist searches
+    const { city } = req.query;
+    
+    if (!city) {
+      return res.status(400).json({ error: 'City parameter is required' });
+    }
+    
+    console.log(`Searching Craigslist for garage sales in ${city}`);
+    
+    // Create a new Craigslist client
+    const client = new Craigslist({
+      city: city // Use the provided city name
+    });
+    
+    // Search for garage sales in the specified city
+    // Using the 'gms' category which is 'garage & moving sales'
+    const options = {
+      category: 'gms',
+      limit: 20 // Limit results to avoid overwhelming the API
+    };
+    
+    // Get listings
+    const listings = await client.search(options);
+    console.log(`Found ${listings.length} garage sale listings`);
+    
+    // Get details for each listing (up to 10 to avoid rate limiting)
+    const detailedListings = await Promise.all(
+      listings.slice(0, 10).map(async (listing) => {
+        try {
+          const details = await client.details(listing);
+          return {
+            ...listing,
+            ...details,
+            date: listing.date ? new Date(listing.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            description: details.description || listing.description || '',
+            imageUrl: details.images && details.images.length > 0 ? details.images[0] : '',
+            images: details.images || [],
+            id: listing.pid || `cl-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+          };
+        } catch (err) {
+          console.warn(`Error getting details for ${listing.url}:`, err);
+          return {
+            ...listing,
+            description: listing.description || '',
+            images: [],
+            date: listing.date ? new Date(listing.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            id: listing.pid || `cl-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+          };
+        }
+      })
+    );
+    
+    const endTime = Date.now();
+    console.log(`Craigslist search completed in ${(endTime - startTime) / 1000} seconds`);
+    console.log(`Processed ${detailedListings.length} garage sales with details`);
+    
+    res.json(detailedListings);
+  } catch (error) {
+    console.error('Error in Craigslist search endpoint:', error);
+    res.status(500).json({ error: 'Failed to search Craigslist', message: error.message });
+  }
+});
 
 // API endpoint for GSALR search
 app.get('/api/gsalr/search', async (req, res) => {
   const startTime = Date.now();
-  console.log(`\n=== New Request: ${new Date().toISOString()} ===`);
+  console.log(`\n=== New GSALR Request: ${new Date().toISOString()} ===`);
   console.log('Query params:', req.query);
   
   try {
     const { zipCode } = req.query;
     
     if (!zipCode) {
-      console.error('Error: Zip code is required');
+      console.error('Error: Location parameter is required');
       return res.status(400).json({ 
         success: false,
-        error: 'Zip code is required',
+        error: 'Location parameter is required',
         timestamp: new Date().toISOString()
       });
     }
+    
+    // For GSALR, we'll use whatever the user provided (city or zip)
     
     console.log(`Starting search for zip code: ${zipCode}`);
     
