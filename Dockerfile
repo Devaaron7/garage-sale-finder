@@ -43,14 +43,21 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Chrome
+# Install Chrome with additional dependencies for stability
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' >> /etc/apt/sources.list.d/google.list \
     && apt-get update \
-    && apt-get install -y google-chrome-stable \
+    && apt-get install -y \
+       google-chrome-stable \
+       dumb-init \
+       procps \
     && CHROME_VERSION=$(google-chrome --version | grep -o '[0-9.]*') \
     && echo "Chrome version: $CHROME_VERSION" \
     && rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user to run Chrome (more secure and stable)
+RUN groupadd -r chrome && useradd -r -g chrome -G audio,video chrome \
+    && mkdir -p /home/chrome && chown -R chrome:chrome /home/chrome
 
 # Install ChromeDriver with version 137.0.7151.68 to match Chrome
 RUN CHROMEDRIVER_VERSION="137.0.7151.68" \
@@ -90,5 +97,8 @@ RUN npm run build
 # Expose app port
 EXPOSE 10000
 
-# Start your app
-CMD ["node", "server/index.js"]
+# Use dumb-init as init system to handle signals properly
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+
+# Start your app with more memory
+CMD ["node", "--max-old-space-size=512", "server/index.js"]
