@@ -13,6 +13,11 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Health check endpoint for Railway
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Garage Sale Finder API is running' });
+});
+
 // Determine the operating system
 const isWindows = os.platform() === 'win32';
 
@@ -23,19 +28,15 @@ const chromeOptions = new chrome.Options();
 const chromeArgs = [
   '--no-sandbox',
   '--disable-dev-shm-usage',
-  '--headless=new',
+  '--headless',
   '--disable-gpu',
-  '--window-size=1280,720', // Smaller window size to reduce memory usage
+  '--window-size=1280,720',
   '--disable-extensions',
-  '--disable-software-rasterizer',
   '--disable-setuid-sandbox',
-  '--disable-features=site-per-process,IsolateOrigins,NetworkService,NetworkServiceInProcess',
   '--disable-blink-features=AutomationControlled',
   '--disable-infobars',
-  '--single-process', // Use single process to avoid renderer issues
-  '--no-zygote', // Don't create a zygote process for forking
   '--mute-audio',
-  '--disable-breakpad', // Disable crash reporting
+  '--disable-breakpad',
   '--disable-sync',
   '--disable-background-networking',
   '--disable-default-apps',
@@ -44,7 +45,7 @@ const chromeArgs = [
   '--disable-client-side-phishing-detection',
   '--disable-component-update',
   '--metrics-recording-only',
-  '--disable-domain-reliability'
+  '--remote-debugging-port=9222'
 ];
 
 // Add OS-specific arguments if needed
@@ -71,9 +72,10 @@ if (isWindows) {
     }
   }
 } else {
-  // For Linux (Render.com)
-  chromeOptions.setChromeBinaryPath(process.env.CHROME_BIN || '/usr/bin/chromium-browser');
-  console.log('Using Chrome from CHROME_BIN environment variable');
+  // For Linux (Railway.app) - using Chrome in browserless/chrome
+  const chromePath = process.env.CHROME_BIN || '/usr/bin/google-chrome';
+  chromeOptions.setChromeBinaryPath(chromePath);
+  console.log(`Using browser at: ${chromePath}`);
 }
 
 // Set Chrome binary path if needed (uncomment and update the path)
@@ -90,8 +92,12 @@ async function scrapeGSALR(zipCode, radius = 10) {
     try {
       console.log(`Scraping attempt ${retryCount + 1}/${maxRetries}`);
       
-      // Initialize WebDriver
+      // Initialize WebDriver with more robust configuration
       console.log('Initializing Chrome WebDriver...');
+      // In the Alpine image, ChromeDriver is already in the PATH
+      console.log('Using ChromeDriver from PATH');
+      
+      // Create a simpler configuration for Alpine
       driver = await new Builder()
         .forBrowser('chrome')
         .setChromeOptions(chromeOptions)
@@ -99,7 +105,7 @@ async function scrapeGSALR(zipCode, radius = 10) {
       console.log('WebDriver initialized successfully');
       
       // Set page load timeout to avoid hanging
-      await driver.manage().setTimeouts({ pageLoad: 30000, implicit: 10000 });
+      await driver.manage().setTimeouts({ pageLoad: 60000, implicit: 15000 });
 
       // Navigate to GSALR homepage
       console.log('Navigating to GSALR homepage...');

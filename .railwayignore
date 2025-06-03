@@ -1,0 +1,22 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Development files
+.vscode
+*.log
+*.md
+!README.md
+
+# Build artifacts that will be regenerated
+build
+node_modules
+
+# Test files
+__tests__
+*.test.js
+*.spec.js
+
+# Documentation
+docs

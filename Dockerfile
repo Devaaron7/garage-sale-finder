@@ -1,79 +1,12 @@
-FROM node:18-slim
-
-# Install Chrome and dependencies
-RUN apt-get update && apt-get install -y \
-    wget \
-    gnupg \
-    curl \
-    unzip \
-    ca-certificates \
-    fonts-liberation \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libatk1.0-0 \
-    libc6 \
-    libcairo2 \
-    libcups2 \
-    libdbus-1-3 \
-    libexpat1 \
-    libfontconfig1 \
-    libgbm1 \
-    libgcc1 \
-    libglib2.0-0 \
-    libgtk-3-0 \
-    libnspr4 \
-    libnss3 \
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libx11-6 \
-    libx11-xcb1 \
-    libxcb1 \
-    libxcomposite1 \
-    libxcursor1 \
-    libxdamage1 \
-    libxext6 \
-    libxfixes3 \
-    libxi6 \
-    libxrandr2 \
-    libxrender1 \
-    libxss1 \
-    libxtst6 \
-    lsb-release \
-    xdg-utils \
-    --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Chrome with additional dependencies for stability
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' >> /etc/apt/sources.list.d/google.list \
-    && apt-get update \
-    && apt-get install -y \
-       google-chrome-stable \
-       dumb-init \
-       procps \
-    && CHROME_VERSION=$(google-chrome --version | grep -o '[0-9.]*') \
-    && echo "Chrome version: $CHROME_VERSION" \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create a non-root user to run Chrome (more secure and stable)
-RUN groupadd -r chrome && useradd -r -g chrome -G audio,video chrome \
-    && mkdir -p /home/chrome && chown -R chrome:chrome /home/chrome
-
-# Install ChromeDriver with version 137.0.7151.68 to match Chrome
-RUN CHROMEDRIVER_VERSION="137.0.7151.68" \
-    && echo "Using ChromeDriver version: $CHROMEDRIVER_VERSION" \
-    && wget -q "https://storage.googleapis.com/chrome-for-testing-public/137.0.7151.68/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip \
-    && unzip -o /tmp/chromedriver.zip -d /tmp/ \
-    && mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/ \
-    && chmod +x /usr/local/bin/chromedriver \
-    && rm -rf /tmp/chromedriver.zip /tmp/chromedriver-linux64 \
-    && echo "ChromeDriver version: $(chromedriver --version || echo 'ChromeDriver installation failed')"
+# Use a pre-built image with Node.js and Chrome
+FROM browserless/chrome:1.61-chrome-stable
 
 # Set environment variables
 ENV CHROME_BIN=/usr/bin/google-chrome \
     CHROME_PATH=/usr/bin/google-chrome \
     NODE_ENV=production \
-    CHROMEDRIVER_PATH=/usr/local/bin/chromedriver
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
 
 # Set working directory
 WORKDIR /app
@@ -100,5 +33,8 @@ EXPOSE 10000
 # Use dumb-init as init system to handle signals properly
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-# Start your app with more memory
-CMD ["node", "--max-old-space-size=512", "server/index.js"]
+# Set NODE_OPTIONS for better performance
+ENV NODE_OPTIONS="--max-old-space-size=512"
+
+# Start your app
+CMD ["node", "server/index.js"]
