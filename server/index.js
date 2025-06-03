@@ -2,7 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
-const { ServiceBuilder } = require('selenium-webdriver/chrome');
+const os = require('os');
+const path = require('path');
+
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -11,62 +13,106 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Health check endpoint for Railway
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Garage Sale Finder API is running' });
+});
+
+// Determine the operating system
+const isWindows = os.platform() === 'win32';
+
 // Configure Chrome options
 const chromeOptions = new chrome.Options();
 
-// Basic Chrome options for better compatibility
-chromeOptions.addArguments([
+// Common Chrome options for better compatibility and stability in containers
+const chromeArgs = [
   '--no-sandbox',
   '--disable-dev-shm-usage',
   '--headless=new',
   '--disable-gpu',
-  '--window-size=1920,1080',
-  '--start-maximized',
+  '--window-size=1280,720',
   '--disable-extensions',
-  '--disable-popup-blocking',
-  '--disable-notifications',
-  '--disable-infobars'
-]);
+  '--disable-setuid-sandbox',
+  '--disable-blink-features=AutomationControlled',
+  '--disable-infobars',
+  '--mute-audio',
+  '--disable-breakpad',
+  '--disable-sync',
+  '--disable-background-networking',
+  '--disable-default-apps',
+  '--disable-hang-monitor',
+  '--disable-prompt-on-repost',
+  '--disable-client-side-phishing-detection',
+  '--disable-component-update',
+  '--metrics-recording-only'
+];
 
-// Run in non-headless mode for debugging
-console.log('Running Chrome in non-headless mode for debugging');
-// Uncomment the line below to enable headless mode when everything works
-// chromeOptions.addArguments('--headless=new');
+// Add OS-specific arguments if needed
+if (!isWindows) {
+  chromeArgs.push('--disable-dev-shm-usage');
+}
+
+chromeOptions.addArguments(chromeArgs);
+
+// Set Chrome binary path based on environment
+if (isWindows) {
+  // Default install paths for Windows
+  const windowsPaths = [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+  ];
+  
+  // Try to find Chrome in common locations
+  for (const chromePath of windowsPaths) {
+    if (require('fs').existsSync(chromePath)) {
+      chromeOptions.setChromeBinaryPath(chromePath);
+      console.log(`Using Chrome at: ${chromePath}`);
+      break;
+    }
+  }
+} else {
+  // For Linux (Railway.app) - using Chrome in browserless/chrome
+  const chromePath = process.env.CHROME_BIN || '/usr/bin/google-chrome';
+  chromeOptions.setChromeBinaryPath(chromePath);
+  console.log(`Using browser at: ${chromePath}`);
+}
 
 // Set Chrome binary path if needed (uncomment and update the path)
 // chromeOptions.setChromeBinaryPath('C:/Program Files/Google/Chrome/Application/chrome.exe');
 
-// GSALR Scraper using Selenium
+// GSALR Scraper using Selenium with retry logic
 async function scrapeGSALR(zipCode, radius = 10) {
   let driver;
-  try {
-    console.log('Initializing Chrome WebDriver...');
+  let retryCount = 0;
+  const maxRetries = 3;
+  let lastError = null;
+  
+  while (retryCount < maxRetries) {
     try {
-      const builder = new Builder()
-        .forBrowser('chrome')
-        .setChromeOptions(chromeOptions);
+      console.log(`Scraping attempt ${retryCount + 1}/${maxRetries}`);
       
-      // Set the path to chromedriver if needed (uncomment and update the path)
-      // builder.setChromeService(new ServiceBuilder('path/to/chromedriver'));
-      driver = await builder.build();
+      // Initialize WebDriver with more robust configuration
+      console.log('Initializing Chrome WebDriver...');
+      // Simple WebDriver initialization
+      console.log('Using Chrome from PATH');
+      
+      // Create a simple configuration
+      driver = await new Builder()
+        .forBrowser('chrome')
+        .setChromeOptions(chromeOptions)
+        .build();
       console.log('WebDriver initialized successfully');
-    } catch (error) {
-      console.error('Failed to initialize WebDriver:', error);
-      if (error.message.includes('This version of ChromeDriver only supports Chrome version')) {
-        console.error('ChromeDriver version mismatch. Please update your Chrome browser or ChromeDriver.');
-      }
-      console.error('Make sure Chrome browser is installed and up to date.');
-      console.error('You may need to install ChromeDriver: https://chromedriver.chromium.org/downloads');
-      throw error;
-    }
+      
+      // Set page load timeout to avoid hanging
+      await driver.manage().setTimeouts({ pageLoad: 60000, implicit: 15000 });
 
-    // Navigate to GSALR homepage
-    console.log('Navigating to GSALR homepage...');
-    await driver.get('https://www.gsalr.com');
+      // Navigate to GSALR homepage
+      console.log('Navigating to GSALR homepage...');
+      await driver.get('https://www.gsalr.com');
     
-    // Take a screenshot of the homepage
-    const homeScreenshot = await driver.takeScreenshot();
-    console.log('Homepage screenshot taken');
+      // Take a screenshot of the homepage
+      const homeScreenshot = await driver.takeScreenshot();
+      console.log('Homepage screenshot taken');
     
     // Find and fill in the zip code input
     console.log('Looking for zip code input...');
@@ -369,18 +415,64 @@ async function scrapeGSALR(zipCode, radius = 10) {
     console.log(`Successfully processed ${sales.length} listings`);
     return sales;
     
-  } catch (error) {
-    console.error('Error in scrapeGSALR:', error);
-    throw new Error('Failed to scrape GSALR: ' + error.message);
-  } finally {
-    if (driver) {
-      try {
-        await driver.quit();
-      } catch (e) {
-        console.error('Error closing WebDriver:', e);
+      // Process the results and return sales data
+      console.log(`Successfully processed ${sales.length} listings`);
+      return sales;
+      
+    } catch (error) {
+      lastError = error;
+      console.error(`Attempt ${retryCount + 1}/${maxRetries} failed:`, error);
+      
+      // Check for specific errors that indicate we should retry
+      const shouldRetry = [
+        'invalid session id',
+        'session deleted',
+        'disconnected',
+        'unable to send message to renderer',
+        'chrome not reachable',
+        'timeout',
+        'no such session',
+        'no such element'
+      ].some(errMsg => error.message && error.message.toLowerCase().includes(errMsg.toLowerCase()));
+      
+      if (!shouldRetry) {
+        console.log('Error is not retryable, breaking retry loop');
+        break;
+      }
+      
+      retryCount++;
+      
+      // Only continue retrying if we haven't exceeded max retries
+      if (retryCount >= maxRetries) {
+        console.log('Maximum retry attempts reached, giving up');
+        break;
+      }
+      
+      console.log(`Waiting 2 seconds before retry ${retryCount}...`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+    } finally {
+      // Always quit the driver after each attempt
+      if (driver) {
+        try {
+          console.log('Quitting WebDriver...');
+          await driver.quit();
+          console.log('WebDriver quit successfully');
+        } catch (e) {
+          console.error('Error closing WebDriver:', e);
+        }
       }
     }
   }
+  
+  // If we've exhausted all retries and still have an error, throw it
+  if (lastError) {
+    console.error('All retry attempts failed');
+    throw new Error('Failed to scrape GSALR: ' + lastError.message);
+  }
+  
+  // This should never happen if we have proper error handling
+  throw new Error('Failed to scrape GSALR: Unknown error');
 }
 
 // API endpoint for GSALR search
