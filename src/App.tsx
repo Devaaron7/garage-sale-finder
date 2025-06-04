@@ -64,7 +64,7 @@ const Container = styled.div`
 `;
 
 const App: React.FC = () => {
-  const [zipCode, setZipCode] = useState<string>('');
+  const [location, setLocation] = useState<string>('');
   const [sales, setSales] = useState<GarageSale[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,19 +74,22 @@ const App: React.FC = () => {
     sources.filter(s => s.enabled).map(s => s.id)
   );
 
-  const handleSearch = async (zip: string, sources: string[]) => {
-    if (!zip.match(/^\d{5}(-\d{4})?$/)) {
-      setError('Please enter a valid 5-digit zip code');
+  const handleSearch = async (locationInput: string, selectedSources: string[]) => {
+    // Clear validation for now as we accept both city names and zip codes
+    if (!locationInput.trim()) {
+      setError('Please enter a city name or zip code');
       return;
     }
 
-    setZipCode(zip);
+    setLocation(locationInput);
+    setSelectedSources(selectedSources);
     setIsLoading(true);
     setError(null);
     setHasSearched(true);
 
     try {
-      const results = await searchAllSources(zip, 10);
+      console.log(`Searching with sources: ${selectedSources.join(', ')}`);
+      const results = await searchAllSources(locationInput, 10, selectedSources);
       setSales(results);
     } catch (err) {
       console.error('Error searching garage sales:', err);
@@ -124,7 +127,8 @@ const App: React.FC = () => {
           <ResultsList 
             sales={sales} 
             isLoading={isLoading} 
-            hasSearched={hasSearched} 
+            hasSearched={hasSearched}
+            enabledSources={selectedSources}
           />
         </Container>
       </MainContent>

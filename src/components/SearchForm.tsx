@@ -84,19 +84,20 @@ const CheckboxLabel = styled.label`
 `;
 
 interface SearchFormProps {
-  onSearch: (zipCode: string, selectedSources: string[]) => void;
+  onSearch: (location: string, selectedSources: string[]) => void;
   isLoading: boolean;
   sources: DataSource[];
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources }) => {
-  const [zipCode, setZipCode] = useState('');
-  const [selectedSources, setSelectedSources] = useState<string[]>(sources.filter(s => s.enabled).map(s => s.id));
+  const [location, setLocation] = useState('');
+  // Default to only Craigslist selected
+  const [selectedSources, setSelectedSources] = useState<string[]>(['craigslist']);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (zipCode.trim() && selectedSources.length > 0) {
-      onSearch(zipCode, selectedSources);
+    if (location.trim() && selectedSources.length > 0) {
+      onSearch(location, selectedSources);
     }
   };
 
@@ -111,14 +112,14 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
   return (
     <Form onSubmit={handleSubmit}>
       <FormGroup>
-        <Label htmlFor="zipCode">Zip Code</Label>
+        <Label htmlFor="location">City or Zip Code</Label>
         <div style={{ position: 'relative' }}>
           <Input
-            id="zipCode"
+            id="location"
             type="text"
-            placeholder="Enter zip code"
-            value={zipCode}
-            onChange={(e) => setZipCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 5))}
+            placeholder="Enter city name or zip code"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
             required
           />
           <FaLocationDot 
@@ -137,20 +138,29 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
         <Label>Data Sources</Label>
         <CheckboxContainer>
           {sources.map((source) => (
-            <CheckboxLabel key={source.id}>
+            <CheckboxLabel key={source.id} style={{
+              padding: '8px 12px',
+              border: selectedSources.includes(source.id) ? '2px solid #3b82f6' : '1px solid #d1d5db',
+              borderRadius: '4px',
+              backgroundColor: selectedSources.includes(source.id) ? '#ebf5ff' : 'white'
+            }}>
               <input
                 type="checkbox"
                 checked={selectedSources.includes(source.id)}
                 onChange={() => toggleSource(source.id)}
                 disabled={!source.enabled}
+                style={{ transform: 'scale(1.2)' }}
               />
               {source.name}
             </CheckboxLabel>
           ))}
         </CheckboxContainer>
+        <div style={{ marginTop: '8px', fontSize: '0.9rem', color: '#4b5563' }}>
+          <strong>Note:</strong> For Craigslist searches, please enter a city name (e.g., "miami", "new york").
+        </div>
       </FormGroup>
       
-      <Button type="submit" disabled={isLoading || !zipCode || selectedSources.length === 0}>
+      <Button type="submit" disabled={isLoading || !location || selectedSources.length === 0}>
           <FaMagnifyingGlass />
         {isLoading ? 'Searching...' : 'Find Garage Sales'}
       </Button>

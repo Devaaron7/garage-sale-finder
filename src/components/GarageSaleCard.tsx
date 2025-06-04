@@ -199,9 +199,10 @@ const ViewDetails = styled.a`
 
 interface GarageSaleCardProps {
   sale: GarageSale;
+  style?: React.CSSProperties;
 }
 
-const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale }) => {
+const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale, style }) => {
   const [showImagePopup, setShowImagePopup] = useState(false);
   const formatDate = (dateStr: string) => {
     const options: Intl.DateTimeFormatOptions = { 
@@ -245,7 +246,7 @@ const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale }) => {
   });
 
   return (
-    <Card>
+    <Card style={style}>
       <div style={{ position: 'relative' }}>
         <ImageContainer 
           $imageUrl={sale.imageUrl} 

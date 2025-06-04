@@ -4,7 +4,9 @@ const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const os = require('os');
 const path = require('path');
-
+// Import the client constructor from node-craigslist
+const craigslist = require('node-craigslist');
+const Client = craigslist.Client;
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -15,7 +17,7 @@ app.use(express.json());
 
 // Health check endpoint for Railway
 app.get('/', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'Garage Sale Finder API is running' });
+  res.status(200).json({ status: 'ok', message: 'Garage Sale Finder API is running', sources: ['gsalr', 'craigslist'] });
 });
 
 // Determine the operating system
@@ -415,10 +417,6 @@ async function scrapeGSALR(zipCode, radius = 10) {
     console.log(`Successfully processed ${sales.length} listings`);
     return sales;
     
-      // Process the results and return sales data
-      console.log(`Successfully processed ${sales.length} listings`);
-      return sales;
-      
     } catch (error) {
       lastError = error;
       console.error(`Attempt ${retryCount + 1}/${maxRetries} failed:`, error);
@@ -471,27 +469,130 @@ async function scrapeGSALR(zipCode, radius = 10) {
     throw new Error('Failed to scrape GSALR: ' + lastError.message);
   }
   
-  // This should never happen if we have proper error handling
-  throw new Error('Failed to scrape GSALR: Unknown error');
+  return [];
 }
+
+// API endpoint for Craigslist search
+app.get('/api/craigslist/search', async (req, res) => {
+  const startTime = Date.now();
+  console.log(`\n=== New Craigslist Request: ${new Date().toISOString()} ===`);
+  
+  try {
+    // Accept 'city' parameter for Craigslist searches
+    const { city } = req.query;
+    
+    if (!city) {
+      return res.status(400).json({ error: 'City parameter is required' });
+    }
+    
+    console.log(`Searching Craigslist for garage sales in ${city}`);
+    
+    // Map common city names to their Craigslist subdomain
+    const cityMap = {
+      'miami': 'miami',
+      'new york': 'newyork',
+      'nyc': 'newyork',
+      'los angeles': 'losangeles',
+      'la': 'losangeles',
+      'chicago': 'chicago',
+      'houston': 'houston',
+      'phoenix': 'phoenix',
+      'philadelphia': 'philadelphia',
+      'san antonio': 'sanantonio',
+      'san diego': 'sandiego',
+      'dallas': 'dallas',
+      'austin': 'austin',
+      'san francisco': 'sfbay',
+      'sf': 'sfbay',
+      'seattle': 'seattle',
+      'denver': 'denver',
+      'boston': 'boston',
+      'atlanta': 'atlanta'
+    };
+    
+    // Normalize the city name (lowercase and trim)
+    const normalizedCity = city.toLowerCase().trim();
+    
+    // Use the mapped city name if available, otherwise use the provided city
+    const craigslistCity = cityMap[normalizedCity] || normalizedCity;
+    
+    console.log(`Using Craigslist city: ${craigslistCity}`);
+    
+    // Create a new Craigslist client with specific options to handle redirects
+    const client = new Client({
+      city: craigslistCity,
+      maxRedirects: 3, // Limit redirects to avoid infinite loops
+      timeout: 10000, // Set a timeout of 10 seconds
+      requestDefaults: {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Cache-Control': 'max-age=0'
+        }
+      }
+    });
+    
+    // Search for garage sales in the specified city
+    // Using the 'gms' category which is 'garage & moving sales'
+    const options = {
+      category: 'gms',
+      limit: 20 // Limit results to avoid overwhelming the API
+    };
+    
+    // Get listings
+    const listings = await client.search(options);
+    console.log(`Found ${listings.length} garage sale listings`);
+    
+    // If we have listings, return them with minimal processing to avoid errors
+    if (listings && listings.length > 0) {
+      // Map listings to our standard format with minimal processing
+      const formattedListings = listings.map(listing => ({
+        id: listing.pid || `cl-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        title: listing.title || 'Garage Sale',
+        description: listing.description || '',
+        date: listing.date ? new Date(listing.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        url: listing.url || '',
+        imageUrl: '',  // We'll skip detailed image fetching to avoid more errors
+        address: listing.location || city,
+        source: 'craigslist',
+        distance: null,
+        price: listing.price || ''
+      }));
+      
+      console.log(`Returning ${formattedListings.length} formatted listings`);
+      return res.json(formattedListings);
+    } else {
+      console.log('No listings found');
+      return res.json([]);
+    }
+  } catch (error) {
+    console.error('Error in Craigslist search endpoint:', error);
+    res.status(500).json({ error: 'Failed to search Craigslist', message: error.message });
+  }
+});
 
 // API endpoint for GSALR search
 app.get('/api/gsalr/search', async (req, res) => {
   const startTime = Date.now();
-  console.log(`\n=== New Request: ${new Date().toISOString()} ===`);
+  console.log(`\n=== New GSALR Request: ${new Date().toISOString()} ===`);
   console.log('Query params:', req.query);
   
   try {
     const { zipCode } = req.query;
     
     if (!zipCode) {
-      console.error('Error: Zip code is required');
+      console.error('Error: Location parameter is required');
       return res.status(400).json({ 
         success: false,
-        error: 'Zip code is required',
+        error: 'Location parameter is required',
         timestamp: new Date().toISOString()
       });
     }
+    
+    // For GSALR, we'll use whatever the user provided (city or zip)
     
     console.log(`Starting search for zip code: ${zipCode}`);
     

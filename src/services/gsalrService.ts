@@ -2,8 +2,9 @@ import axios from 'axios';
 import { GarageSale } from '../types';
 
 // This should point to your backend API that will handle the web scraping
-// In development, this will proxy to http://localhost:3001
-const API_BASE_URL = 'https://garage-finder-app-production.up.railway.app/api'; // for local development = 'http://localhost:3001/api';
+// In development, use http://localhost:3001/api
+// In production, use https://garage-finder-app-production.up.railway.app/api
+const API_BASE_URL = 'http://localhost:3001/api'; // for local development = 'http://localhost:3001/api';
 
 interface GSALRResponse {
   id: string;
