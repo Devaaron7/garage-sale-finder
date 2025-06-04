@@ -1,6 +1,7 @@
 import { GarageSale, DataSource } from '../types';
 import { searchGarageSales as searchGSALR } from './gsalrService';
 import { searchCraigslistGarageSales } from './craigslistService';
+import { searchMercariSales } from './mercariService';
 
 export const DATA_SOURCES: DataSource[] = [
   {
@@ -13,6 +14,12 @@ export const DATA_SOURCES: DataSource[] = [
     id: 'craigslist',
     name: 'Craigslist',
     url: 'https://www.craigslist.org',
+    enabled: true
+  },
+  {
+    id: 'mercari',
+    name: 'Mercari',
+    url: 'https://www.mercari.com',
     enabled: true
   }
   // Add more data sources here as they're implemented
@@ -38,6 +45,10 @@ export const searchAllSources = async (location: string, radius: number = 10, se
         case 'craigslist':
           console.log(`Searching Craigslist with city: ${location}`);
           sourceResults = await searchCraigslistGarageSales(location);
+          break;
+        case 'mercari':
+          console.log(`Searching Mercari with location: ${location}`);
+          sourceResults = await searchMercariSales(location, radius);
           break;
         // Add cases for other sources here
       }
