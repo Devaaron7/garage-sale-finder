@@ -23,14 +23,28 @@ const SAMPLE_ZIP_CODES = [
   '33401'  // West Palm Beach, FL
 ];
 
+// Helper function to add delay
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export const searchCraigslistGarageSales = async (zipCode: string): Promise<GarageSale[]> => {
+  // Add a minimum delay to ensure loading animation is visible
+  const minDelay = 1500; // 1.5 seconds minimum delay
+  const startTime = Date.now();
+  
   // Get location data for the provided zip code
   const location = await getLocationByZipCode(zipCode);
   const baseCity = location?.city || 'Miami';
   const baseState = location?.state || 'FL';
   const baseZip = location?.zipCode || '33101';
+  
   // Generate dates based on current date
   const today = new Date();
+  
+  // Calculate remaining time to ensure minimum delay
+  const elapsed = Date.now() - startTime;
+  if (elapsed < minDelay) {
+    await delay(minDelay - elapsed);
+  }
   const formatDate = (daysToAdd: number): string => {
     const date = new Date(today);
     date.setDate(date.getDate() + daysToAdd);
@@ -49,7 +63,7 @@ export const searchCraigslistGarageSales = async (zipCode: string): Promise<Gara
       zipCode: baseZip,
       url: `https://${baseCity.toLowerCase().replace(/\s+/g, '')}.craigslist.org/search/gms`,
       description: `Several families participating — we've got everything from kids' bikes, games, kitchenware, small furniture, and more. Come early!`,
-      imageUrl: "https://www.dropbox.com/s/example/multifamily.jpg?raw=1"
+      imageUrl: "https://i.redd.it/8sdjd5mrswya1.jpg"
     },
     {
       title: "Garage Cleanout Sale – Power Tools & Garden Gear",
@@ -61,7 +75,7 @@ export const searchCraigslistGarageSales = async (zipCode: string): Promise<Gara
       zipCode: baseZip,
       url: `https://${baseCity.toLowerCase().replace(/\s+/g, '')}.craigslist.org/search/gms`,
       description: "Selling used power drills, lawn equipment, hand tools, hoses, and car jacks. Some items still new in box. Cash only.",
-      imageUrl: "https://www.dropbox.com/s/example/tools.jpg?raw=1"
+      imageUrl: "https://preview.redd.it/yard-sale-steal-v0-38spkuwnhf6d1.jpg?width=640&crop=smart&auto=webp&s=71346ec4bd71886d966ef75fe77a69b2f9b7335b"
     },
     {
       title: "College Move-Out – Electronics, Decor & Small Appliances",
@@ -73,7 +87,7 @@ export const searchCraigslistGarageSales = async (zipCode: string): Promise<Gara
       zipCode: baseZip,
       url: `https://${baseCity.toLowerCase().replace(/\s+/g, '')}.craigslist.org/search/gms`,
       description: "Just graduated, so everything must go! Selling a mini fridge, desk lamp, speakers, and some dorm wall decor. All in great shape.",
-      imageUrl: "https://www.dropbox.com/s/example/college.jpg?raw=1"
+      imageUrl: "https://i.redd.it/hr4zho2gywmz.jpg"
     },
     {
       title: "Comic Books & Collectibles Sale – Huge Inventory",
@@ -85,7 +99,7 @@ export const searchCraigslistGarageSales = async (zipCode: string): Promise<Gara
       zipCode: baseZip,
       url: `https://${baseCity.toLowerCase().replace(/\s+/g, '')}.craigslist.org/search/gms`,
       description: "Over 300 comics (Marvel, DC, indie), plus Funko Pops, action figures, and posters. Priced to sell. Great for collectors or kids.",
-      imageUrl: "https://www.dropbox.com/s/example/comics.jpg?raw=1"
+      imageUrl: "https://preview.redd.it/adz2ps7sxni11.jpg?auto=webp&s=abbc11c8978d05c6efe5324f456042f51f2dd22c"
     },
     {
       title: "Estate Sale – Antiques, Dishes, Rugs & More",
@@ -97,7 +111,7 @@ export const searchCraigslistGarageSales = async (zipCode: string): Promise<Gara
       zipCode: baseZip,
       url: `https://${baseCity.toLowerCase().replace(/\s+/g, '')}.craigslist.org/search/gms`,
       description: "Fine china, crystalware, handwoven rugs, classic furniture, and wall art. Downsizing and everything must go this weekend.",
-      imageUrl: "https://www.dropbox.com/s/example/antiques.jpg?raw=1"
+      imageUrl: "https://preview.redd.it/estate-sale-help-v0-5ws2qhm2ccvd1.jpg?width=600&format=pjpg&auto=webp&s=b2673509ef7092b12d583f1babd0ef4505729db6"
     }
   ];
 

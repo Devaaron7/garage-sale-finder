@@ -127,7 +127,8 @@ const App: React.FC = () => {
           <ResultsList 
             sales={sales} 
             isLoading={isLoading} 
-            hasSearched={hasSearched} 
+            hasSearched={hasSearched}
+            enabledSources={selectedSources}
           />
         </Container>
       </MainContent>
