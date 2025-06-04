@@ -4,8 +4,9 @@ const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const os = require('os');
 const path = require('path');
-const Craigslist = require('node-craigslist');
-
+// Import the client constructor from node-craigslist
+const craigslist = require('node-craigslist');
+const Client = craigslist.Client;
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -486,9 +487,52 @@ app.get('/api/craigslist/search', async (req, res) => {
     
     console.log(`Searching Craigslist for garage sales in ${city}`);
     
-    // Create a new Craigslist client
-    const client = new Craigslist({
-      city: city // Use the provided city name
+    // Map common city names to their Craigslist subdomain
+    const cityMap = {
+      'miami': 'miami',
+      'new york': 'newyork',
+      'nyc': 'newyork',
+      'los angeles': 'losangeles',
+      'la': 'losangeles',
+      'chicago': 'chicago',
+      'houston': 'houston',
+      'phoenix': 'phoenix',
+      'philadelphia': 'philadelphia',
+      'san antonio': 'sanantonio',
+      'san diego': 'sandiego',
+      'dallas': 'dallas',
+      'austin': 'austin',
+      'san francisco': 'sfbay',
+      'sf': 'sfbay',
+      'seattle': 'seattle',
+      'denver': 'denver',
+      'boston': 'boston',
+      'atlanta': 'atlanta'
+    };
+    
+    // Normalize the city name (lowercase and trim)
+    const normalizedCity = city.toLowerCase().trim();
+    
+    // Use the mapped city name if available, otherwise use the provided city
+    const craigslistCity = cityMap[normalizedCity] || normalizedCity;
+    
+    console.log(`Using Craigslist city: ${craigslistCity}`);
+    
+    // Create a new Craigslist client with specific options to handle redirects
+    const client = new Client({
+      city: craigslistCity,
+      maxRedirects: 3, // Limit redirects to avoid infinite loops
+      timeout: 10000, // Set a timeout of 10 seconds
+      requestDefaults: {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Cache-Control': 'max-age=0'
+        }
+      }
     });
     
     // Search for garage sales in the specified city
@@ -502,38 +546,28 @@ app.get('/api/craigslist/search', async (req, res) => {
     const listings = await client.search(options);
     console.log(`Found ${listings.length} garage sale listings`);
     
-    // Get details for each listing (up to 10 to avoid rate limiting)
-    const detailedListings = await Promise.all(
-      listings.slice(0, 10).map(async (listing) => {
-        try {
-          const details = await client.details(listing);
-          return {
-            ...listing,
-            ...details,
-            date: listing.date ? new Date(listing.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-            description: details.description || listing.description || '',
-            imageUrl: details.images && details.images.length > 0 ? details.images[0] : '',
-            images: details.images || [],
-            id: listing.pid || `cl-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-          };
-        } catch (err) {
-          console.warn(`Error getting details for ${listing.url}:`, err);
-          return {
-            ...listing,
-            description: listing.description || '',
-            images: [],
-            date: listing.date ? new Date(listing.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-            id: listing.pid || `cl-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-          };
-        }
-      })
-    );
-    
-    const endTime = Date.now();
-    console.log(`Craigslist search completed in ${(endTime - startTime) / 1000} seconds`);
-    console.log(`Processed ${detailedListings.length} garage sales with details`);
-    
-    res.json(detailedListings);
+    // If we have listings, return them with minimal processing to avoid errors
+    if (listings && listings.length > 0) {
+      // Map listings to our standard format with minimal processing
+      const formattedListings = listings.map(listing => ({
+        id: listing.pid || `cl-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        title: listing.title || 'Garage Sale',
+        description: listing.description || '',
+        date: listing.date ? new Date(listing.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        url: listing.url || '',
+        imageUrl: '',  // We'll skip detailed image fetching to avoid more errors
+        address: listing.location || city,
+        source: 'craigslist',
+        distance: null,
+        price: listing.price || ''
+      }));
+      
+      console.log(`Returning ${formattedListings.length} formatted listings`);
+      return res.json(formattedListings);
+    } else {
+      console.log('No listings found');
+      return res.json([]);
+    }
   } catch (error) {
     console.error('Error in Craigslist search endpoint:', error);
     res.status(500).json({ error: 'Failed to search Craigslist', message: error.message });
