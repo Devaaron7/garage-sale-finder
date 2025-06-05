@@ -66,8 +66,8 @@ describe('Search Flow Integration Tests', () => {
     await waitFor(() => {
       expect(searchAllSources).toHaveBeenCalledWith(
         '12345',
-        ['craigslist'],
-        expect.any(Function)
+        10, // Default radius
+        ['craigslist']
       );
       expect(screen.getByText('Test Garage Sale')).toBeInTheDocument();
     });
@@ -159,8 +159,8 @@ describe('Search Flow Integration Tests', () => {
     await waitFor(() => {
       expect(searchAllSources).toHaveBeenCalledWith(
         '12345',
-        ['craigslist', 'offerup'],
-        expect.any(Function)
+        10, // Default radius
+        ['craigslist', 'offerup']
       );
       expect(screen.getByText('Craigslist Sale')).toBeInTheDocument();
       expect(screen.getByText('OfferUp Sale')).toBeInTheDocument();
