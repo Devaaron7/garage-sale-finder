@@ -91,13 +91,29 @@ interface SearchFormProps {
 
 const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources }) => {
   const [location, setLocation] = useState('');
+  const [isValidZip, setIsValidZip] = useState(true);
   // Default to only Craigslist selected
   const [selectedSources, setSelectedSources] = useState<string[]>(['craigslist']);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (location.trim() && selectedSources.length > 0) {
-      onSearch(location, selectedSources);
+    const zipCode = location.trim();
+    const isValid = /^\d{5}$/.test(zipCode);
+    setIsValidZip(isValid);
+    
+    if (isValid && selectedSources.length > 0) {
+      onSearch(zipCode, selectedSources);
+    }
+  };
+
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Only allow numeric input and limit to 5 digits
+    if (value === '' || /^\d{0,5}$/.test(value)) {
+      setLocation(value);
+      if (value.length === 5) {
+        setIsValidZip(true);
+      }
     }
   };
 
@@ -112,14 +128,17 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
   return (
     <Form onSubmit={handleSubmit}>
       <FormGroup>
-        <Label htmlFor="location">City or Zip Code</Label>
+        <Label htmlFor="location">ZIP Code</Label>
         <div style={{ position: 'relative' }}>
           <Input
             id="location"
             type="text"
-            placeholder="Enter city name or zip code"
+            inputMode="numeric"
+            pattern="\d{5}"
+            placeholder="Enter 5-digit ZIP code"
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
+            onChange={handleLocationChange}
+            style={!isValidZip && location.length === 5 ? { borderColor: '#ef4444' } : {}}
             required
           />
           <FaLocationDot 
@@ -132,6 +151,11 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
             }} 
           />
         </div>
+        {!isValidZip && location.length === 5 && (
+          <div style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+            Please enter a valid 5-digit ZIP code
+          </div>
+        )}
       </FormGroup>
       
       <FormGroup>
@@ -156,7 +180,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
           ))}
         </CheckboxContainer>
         <div style={{ marginTop: '8px', fontSize: '0.9rem', color: '#4b5563' }}>
-          <strong>Note:</strong> For Craigslist searches, please enter a city name (e.g., "miami", "new york").
+          <strong>Note:</strong> Please enter a 5-digit US ZIP code (e.g., 10001, 90210).
         </div>
       </FormGroup>
       
