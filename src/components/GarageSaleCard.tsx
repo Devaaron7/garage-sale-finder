@@ -160,10 +160,27 @@ const DistanceBadge = styled.span`
   margin-top: 0.5rem;
 `;
 
-const SourceBadge = styled.span`
+const getSourceStyles = (source: string) => {
+  switch(source.toLowerCase()) {
+    case 'gsalr':
+      return { bg: '#f3f4f6', text: '#4b5563' }; // Grey
+    case 'mercari':
+      return { bg: '#e0f2fe', text: '#0369a1' }; // Light Blue
+    case 'ebay local':
+      return { bg: '#fee2e2', text: '#b91c1c' }; // Red
+    case 'craigslist':
+      return { bg: '#dcfce7', text: '#166534' }; // Green
+    case 'offerup':
+      return { bg: '#f3e8ff', text: '#6b21a8' }; // Purple
+    default:
+      return { bg: '#f3f4f6', text: '#4b5563' }; // Default grey
+  }
+};
+
+const SourceBadge = styled.span<{ source: string }>`
   display: inline-block;
-  background-color: #f3f4f6;
-  color: #4b5563;
+  background-color: ${props => getSourceStyles(props.source).bg};
+  color: ${props => getSourceStyles(props.source).text};
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-size: 0.75rem;
@@ -264,7 +281,7 @@ const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale, style }) => {
         <Header>
           <Title>{sale.title}</Title>
           {sale.preview && <Preview>{sale.preview}</Preview>}
-          <SourceBadge>{sale.source}</SourceBadge>
+          <SourceBadge source={sale.source}>{sale.source}</SourceBadge>
 
         </Header>
         
