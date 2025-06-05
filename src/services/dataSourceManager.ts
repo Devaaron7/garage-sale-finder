@@ -1,6 +1,9 @@
 import { GarageSale, DataSource } from '../types';
 import { searchGarageSales as searchGSALR } from './gsalrService';
 import { searchCraigslistGarageSales } from './craigslistService';
+import { searchMercariSales } from './mercariService';
+import { searchEbayLocalSales } from './ebayLocalService';
+import { searchOfferUpSales } from './offerUpService';
 
 export const DATA_SOURCES: DataSource[] = [
   {
@@ -13,6 +16,24 @@ export const DATA_SOURCES: DataSource[] = [
     id: 'craigslist',
     name: 'Craigslist',
     url: 'https://www.craigslist.org',
+    enabled: true
+  },
+  {
+    id: 'mercari',
+    name: 'Mercari',
+    url: 'https://www.mercari.com',
+    enabled: true
+  },
+  {
+    id: 'ebay-local',
+    name: 'eBay Local',
+    url: 'https://www.ebay.com/local',
+    enabled: true
+  },
+  {
+    id: 'offerup',
+    name: 'OfferUp',
+    url: 'https://www.offerup.com',
     enabled: true
   }
   // Add more data sources here as they're implemented
@@ -39,7 +60,18 @@ export const searchAllSources = async (location: string, radius: number = 10, se
           console.log(`Searching Craigslist with city: ${location}`);
           sourceResults = await searchCraigslistGarageSales(location);
           break;
-        // Add cases for other sources here
+        case 'mercari':
+          console.log(`Searching Mercari with location: ${location}`);
+          sourceResults = await searchMercariSales(location, radius);
+          break;
+        case 'ebay-local':
+          console.log(`Searching eBay Local with location: ${location}`);
+          sourceResults = await searchEbayLocalSales(location, radius);
+          break;
+        case 'offerup':
+          console.log(`Searching OfferUp with location: ${location}`);
+          sourceResults = await searchOfferUpSales(location, radius);
+          break;
       }
       
       results.push(...sourceResults);
