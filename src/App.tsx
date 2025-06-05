@@ -129,6 +129,7 @@ const App: React.FC = () => {
             isLoading={isLoading} 
             hasSearched={hasSearched}
             enabledSources={selectedSources}
+            selectedSources={selectedSources}
           />
         </Container>
       </MainContent>
