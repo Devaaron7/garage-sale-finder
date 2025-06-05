@@ -6,9 +6,8 @@ import GarageSaleCard from './GarageSaleCard';
 
 const Container = styled.div`
   margin-top: 2rem;
-  opacity: 0;
+  opacity: 1;
   transform: translateY(20px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
   
   &.visible {
     opacity: 1;
@@ -70,35 +69,32 @@ const EmptyMessage = styled.p`
 `;
 
 const LoadingContainer = styled.div`
-  margin-bottom: 2rem;
+  margin: 2rem 0;
   text-align: center;
-  opacity: 1 !important;
-  position: relative;
-  z-index: 10;
+  padding: 2rem;
 `;
 
-const LoadingBar = styled.div`
+const ProgressBarContainer = styled.div`
   width: 100%;
   height: 8px;
   background-color: #e5e7eb;
   border-radius: 4px;
+  margin: 2rem 0;
   overflow: hidden;
-  margin: 1rem 0;
 `;
 
-const LoadingProgress = styled.div<{ width: number }>`
+const ProgressBar = styled.div<{ width: number }>`
   height: 100%;
   width: ${props => props.width}%;
   background-color: #3b82f6;
   border-radius: 4px;
-  transition: width 0.5s ease;
+  transition: width 0.3s ease;
 `;
 
 const LoadingText = styled.p`
   color: #6b7280;
-  font-size: 0.875rem;
-  margin: 0.5rem 0 0;
-  font-style: italic;
+  font-size: 1rem;
+  margin: 1rem 0 0;
 `;
 
 interface ResultsListProps {
@@ -106,95 +102,52 @@ interface ResultsListProps {
   isLoading: boolean;
   hasSearched: boolean;
   enabledSources?: string[];
+  selectedSources?: string[];
 }
 
-const ResultsList: React.FC<ResultsListProps> = ({ sales, isLoading, hasSearched, enabledSources = [] }) => {
+const ResultsList: React.FC<ResultsListProps> = ({ sales, isLoading, hasSearched, enabledSources = [], selectedSources = [] }) => {
   const [progress, setProgress] = useState(0);
-  const [loadingStage, setLoadingStage] = useState('Initializing search...');
-  const [showContent, setShowContent] = useState(false);
-  const [startTime, setStartTime] = useState(Date.now());
+  const [loadingSources, setLoadingSources] = useState<string[]>([]);
 
   useEffect(() => {
     if (isLoading) {
-      // Reset progress when loading starts
       setProgress(0);
-      setLoadingStage('Initializing search...');
+      setLoadingSources([...selectedSources]);
       
-      // Calculate base delay based on number of enabled sources
-      const sourceCount = enabledSources.length || 1;
-      const baseDelay = Math.min(800, Math.max(300, 1200 / Math.sqrt(sourceCount)));
+      const totalSources = selectedSources.length || 1;
+      const timePerSource = 1500; // 1.5 seconds per source
+      const totalTime = timePerSource * totalSources;
+      const increment = 100 / (totalTime / 50); // Update every 50ms for smooth animation
       
-      // Define all possible stages
-      const allStages = [
-        { progress: 10, text: 'Connecting to data sources...' },
-        { progress: 25, text: 'Searching for garage sales...' },
-        { progress: 40, text: 'Collecting listing details...' },
-        { progress: 60, text: 'Processing images...' },
-        { progress: 75, text: 'Filtering results...' },
-        { progress: 85, text: 'Verifying listings...' },
-        { progress: 92, text: 'Finalizing results...' },
-        { progress: 96, text: 'Almost there...' },
-        { progress: 98, text: 'Wrapping up...' },
-        { progress: 99, text: 'Finishing touches...' }
-      ];
-      
-      // Select a subset of stages based on number of sources (more sources = more stages)
-      const stageCount = Math.min(3 + Math.floor(sourceCount * 0.7), allStages.length);
-      const stages = allStages.slice(0, stageCount);
-      
-      // Create timeouts for each stage with variable delays
-      stages.forEach((stage, index) => {
-        // Increase delay for later stages to simulate more work
-        const stageDelay = (index + 1) * baseDelay * (1 + (index / stages.length));
-        
-        setTimeout(() => {
-          setProgress(stage.progress);
-          setLoadingStage(stage.text);
-          
-          // If this is the last stage, ensure we reach 100%
-          if (index === stages.length - 1) {
-            setTimeout(() => {
-              setProgress(100);
-            }, 300);
+      const timer = setInterval(() => {
+        setProgress(prev => {
+          const newProgress = prev + increment;
+          if (newProgress >= 100) {
+            clearInterval(timer);
+            return 100;
           }
-        }, stageDelay);
-      });
+          return newProgress;
+        });
+      }, 50);
       
-      // Cleanup function to clear any pending timeouts
-      return () => {
-        // Clear all timeouts
-        const maxTimeoutId = window.setTimeout(() => {}, 0);
-        for (let i = 0; i < maxTimeoutId; i++) {
-          window.clearTimeout(i);
-        }
-      };
+      return () => clearInterval(timer);
     }
-  }, [isLoading, enabledSources]);
-
-  useEffect(() => {
-    if (!isLoading && hasSearched) {
-      const timeElapsed = Date.now() - startTime;
-      const remainingTime = Math.max(0, 3000 - timeElapsed); // Ensure at least 3s total loading time
-      
-      const timer = setTimeout(() => {
-        setShowContent(true);
-      }, remainingTime);
-      
-      return () => clearTimeout(timer);
-    } else {
-      setShowContent(false);
-    }
-  }, [isLoading, hasSearched, startTime]);
+  }, [isLoading, selectedSources]);
 
   if (isLoading) {
     return (
       <Container>
         <LoadingContainer>
           <h3>Searching for Garage Sales</h3>
-          <LoadingBar>
-            <LoadingProgress width={progress} />
-          </LoadingBar>
-          <LoadingText>{loadingStage}</LoadingText>
+          <LoadingText>
+            Searching {selectedSources.length} {selectedSources.length === 1 ? 'source' : 'sources'}...
+          </LoadingText>
+          <ProgressBarContainer>
+            <ProgressBar width={progress} />
+          </ProgressBarContainer>
+          <LoadingText>
+            {Math.min(Math.round(progress), 100)}% Complete
+          </LoadingText>
         </LoadingContainer>
         <Grid>
           {[...Array(6)].map((_, i) => (
@@ -230,7 +183,7 @@ const ResultsList: React.FC<ResultsListProps> = ({ sales, isLoading, hasSearched
   }
 
   return (
-    <Container className={showContent ? 'visible' : ''}>
+    <Container data-testid="results-list" className="visible">
       <ResultsHeader>
         <ResultsCount>
           {sales.length} {sales.length === 1 ? 'Garage Sale' : 'Garage Sales'} Found
@@ -241,12 +194,6 @@ const ResultsList: React.FC<ResultsListProps> = ({ sales, isLoading, hasSearched
           <GarageSaleCard 
             key={`${sale.source}-${sale.id}`} 
             sale={sale} 
-            style={{
-              transitionDelay: `${Math.min(index * 50, 500)}ms`,
-              opacity: showContent ? 1 : 0,
-              transform: showContent ? 'translateY(0)' : 'translateY(20px)',
-              transition: 'opacity 0.5s ease, transform 0.5s ease'
-            }}
           />
         ))}
       </Grid>
