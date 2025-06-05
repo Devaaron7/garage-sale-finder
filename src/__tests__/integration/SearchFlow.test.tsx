@@ -49,6 +49,10 @@ describe('Search Flow Integration Tests', () => {
     (searchAllSources as jest.Mock).mockResolvedValue(mockResults);
 
     render(<App />);
+    
+    // Select a data source
+    const sourceCheckbox = screen.getByLabelText('Craigslist');
+    fireEvent.click(sourceCheckbox);
 
     // Enter a valid zip code
     const zipInput = screen.getByLabelText(/ZIP Code/i);
@@ -60,13 +64,21 @@ describe('Search Flow Integration Tests', () => {
 
     // Wait for results to be displayed
     await waitFor(() => {
-      expect(searchAllSources).toHaveBeenCalledWith('12345', expect.anything(), expect.anything());
+      expect(searchAllSources).toHaveBeenCalledWith(
+        '12345',
+        ['craigslist'],
+        expect.any(Function)
+      );
       expect(screen.getByText('Test Garage Sale')).toBeInTheDocument();
     });
   });
 
   test('should validate zip code format', async () => {
     render(<App />);
+    
+    // Select a data source
+    const sourceCheckbox = screen.getByLabelText('Craigslist');
+    fireEvent.click(sourceCheckbox);
 
     // Enter an invalid zip code (too short)
     const zipInput = screen.getByLabelText(/ZIP Code/i);
@@ -128,6 +140,12 @@ describe('Search Flow Integration Tests', () => {
     (searchAllSources as jest.Mock).mockResolvedValue(mockResults);
 
     render(<App />);
+    
+    // Select both data sources
+    const craigslistCheckbox = screen.getByLabelText('Craigslist');
+    const offerupCheckbox = screen.getByLabelText('OfferUp');
+    fireEvent.click(craigslistCheckbox);
+    fireEvent.click(offerupCheckbox);
 
     // Enter a valid zip code
     const zipInput = screen.getByLabelText(/ZIP Code/i);
@@ -139,6 +157,11 @@ describe('Search Flow Integration Tests', () => {
 
     // Wait for results to be displayed
     await waitFor(() => {
+      expect(searchAllSources).toHaveBeenCalledWith(
+        '12345',
+        ['craigslist', 'offerup'],
+        expect.any(Function)
+      );
       expect(screen.getByText('Craigslist Sale')).toBeInTheDocument();
       expect(screen.getByText('OfferUp Sale')).toBeInTheDocument();
     });

@@ -183,7 +183,7 @@ const ResultsList: React.FC<ResultsListProps> = ({ sales, isLoading, hasSearched
   }
 
   return (
-    <Container className="visible">
+    <Container data-testid="results-list" className="visible">
       <ResultsHeader>
         <ResultsCount>
           {sales.length} {sales.length === 1 ? 'Garage Sale' : 'Garage Sales'} Found

@@ -263,7 +263,7 @@ const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale, style }) => {
   });
 
   return (
-    <Card style={style}>
+    <Card data-testid="garage-sale-card" style={style}>
       <div style={{ position: 'relative' }}>
         <ImageContainer 
           $imageUrl={sale.imageUrl} 

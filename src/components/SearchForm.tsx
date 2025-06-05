@@ -92,8 +92,8 @@ interface SearchFormProps {
 const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources }) => {
   const [location, setLocation] = useState('');
   const [isValidZip, setIsValidZip] = useState(true);
-  // Default to only Craigslist selected
-  const [selectedSources, setSelectedSources] = useState<string[]>(['craigslist']);
+  // Start with no sources selected by default
+  const [selectedSources, setSelectedSources] = useState<string[]>([]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
