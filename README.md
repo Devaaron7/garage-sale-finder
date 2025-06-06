@@ -2,6 +2,9 @@
 
 A React application that helps users find garage sales in their area by aggregating listings from multiple sources.
 
+## Note
+Due to the lack of public apis with garage sale data - this app uses mock data with the foucs being to demonstrate frontend, backend, test creation, and creativity of the developer's skill
+
 ## Features
 
 - Search for garage sales by zip code
