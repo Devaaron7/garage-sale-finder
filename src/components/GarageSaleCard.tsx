@@ -121,6 +121,16 @@ const Title = styled.h3`
   font-weight: 600;
   color: #1f2937;
   margin: 0 0 0.5rem 0;
+  
+  a {
+    color: inherit;
+    text-decoration: none;
+    
+    &:hover {
+      color: #3b82f6;
+      text-decoration: underline;
+    }
+  }
 `;
 
 const Preview = styled.p`
@@ -279,7 +289,15 @@ const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale, style }) => {
       </div>
       <Content>
         <Header>
-          <Title>{sale.title}</Title>
+          <Title>
+            {sale.url ? (
+              <a href={sale.url} target="_blank" rel="noopener noreferrer">
+                {sale.title}
+              </a>
+            ) : (
+              sale.title
+            )}
+          </Title>
           {sale.preview && <Preview>{sale.preview}</Preview>}
           <SourceBadge source={sale.source}>{sale.source}</SourceBadge>
 
