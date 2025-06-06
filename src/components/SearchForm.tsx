@@ -92,8 +92,17 @@ interface SearchFormProps {
 const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources }) => {
   const [location, setLocation] = useState('');
   const [isValidZip, setIsValidZip] = useState(true);
-  // Start with no sources selected by default
-  const [selectedSources, setSelectedSources] = useState<string[]>([]);
+  // Start with all enabled sources selected by default
+  const [selectedSources, setSelectedSources] = useState<string[]>(
+    sources.filter(source => source.enabled).map(source => source.id)
+  );
+  
+  // Update selected sources when the sources prop changes
+  React.useEffect(() => {
+    setSelectedSources(
+      sources.filter(source => source.enabled).map(source => source.id)
+    );
+  }, [sources]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
