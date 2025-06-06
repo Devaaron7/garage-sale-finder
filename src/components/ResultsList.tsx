@@ -137,7 +137,7 @@ const ResultsList: React.FC<ResultsListProps> = ({ sales, isLoading, hasSearched
   if (isLoading) {
     return (
       <Container>
-        <LoadingContainer>
+        <LoadingContainer id="loading-results">
           <h3>Searching for Garage Sales</h3>
           <LoadingText>
             Searching {selectedSources.length} {selectedSources.length === 1 ? 'source' : 'sources'}...

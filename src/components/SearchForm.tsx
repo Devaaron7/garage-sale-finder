@@ -112,6 +112,14 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
     
     if (isValid && selectedSources.length > 0) {
       onSearch(zipCode, selectedSources);
+      
+      // Scroll to the loading element after a short delay to ensure it's rendered
+      setTimeout(() => {
+        const loadingElement = document.getElementById('loading-results');
+        if (loadingElement) {
+          loadingElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
     }
   };
 
