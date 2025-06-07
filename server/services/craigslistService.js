@@ -18,10 +18,10 @@ const searchCraigslistGarageSales = async (zipCode) => {
   const startTime = Date.now();
   
   // Get location data for the provided zip code
-  const location = getLocationByZipCode(zipCode);
-  const baseCity = location?.city || 'Miami';
-  const baseState = location?.state || 'FL';
-  const baseZip = zipCode || '33101';
+  const location = await getLocationByZipCode(zipCode);
+  const baseCity = location.city;
+  const baseState = location.stateAbbreviation || location.state;
+  const baseZip = zipCode;
 
   // Generate mock data with realistic addresses based on the provided zip code
   const mockData = [

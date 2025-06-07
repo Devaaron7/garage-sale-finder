@@ -1,7 +1,15 @@
 import emailjs from '@emailjs/browser';
 
+// Check if EmailJS should be enabled
+const isEmailJSEnabled = process.env.REACT_APP_EMAILJS_ENABLED !== 'false';
+
 // Initialize EmailJS with public key
 export const initEmailJS = () => {
+  if (!isEmailJSEnabled) {
+    console.log('EmailJS is disabled via environment variable');
+    return false;
+  }
+
   const publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
   
   if (!publicKey) {
@@ -26,6 +34,11 @@ export const initEmailJS = () => {
  * @returns Promise<boolean> Success status
  */
 export const sendSearchNotification = async (zipCode: string, email?: string): Promise<boolean> => {
+  if (!isEmailJSEnabled) {
+    console.log('EmailJS is disabled - skipping email notification');
+    return true; // Return true to prevent errors in the UI
+  }
+
   try {
     const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID;
     const templateId = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
@@ -45,7 +58,7 @@ export const sendSearchNotification = async (zipCode: string, email?: string): P
       }
     );
     
-    console.log('Email notification sent successfully:', response);
+    console.log('Email notification sent successfully');
     return true;
   } catch (error) {
     console.error('Failed to send email notification:', error);

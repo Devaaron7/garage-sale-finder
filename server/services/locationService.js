@@ -1,30 +1,74 @@
-// Server-side location service
-const zipCodeData = {
-  // Florida
-  '33101': { city: 'Miami', state: 'FL', lat: 25.7617, lng: -80.1918 },
-  '33130': { city: 'Miami', state: 'FL', lat: 25.7617, lng: -80.1918 },
-  '33139': { city: 'Miami Beach', state: 'FL', lat: 25.7907, lng: -80.1300 },
-  '33301': { city: 'Fort Lauderdale', state: 'FL', lat: 26.1224, lng: -80.1373 },
-  '33401': { city: 'West Palm Beach', state: 'FL', lat: 26.7153, lng: -80.0534 },
-  '33313': { city: 'Fort Lauderdale', state: 'FL', lat: 26.1457, lng: -80.2090 },
-  
-  // New York
-  '10001': { city: 'New York', state: 'NY', lat: 40.7128, lng: -74.0060 },
-  '10019': { city: 'New York', state: 'NY', lat: 40.7128, lng: -74.0060 },
-  '11201': { city: 'Brooklyn', state: 'NY', lat: 40.6782, lng: -73.9442 },
-  
-  // California
-  '90001': { city: 'Los Angeles', state: 'CA', lat: 34.0522, lng: -118.2437 },
-  '90210': { city: 'Beverly Hills', state: 'CA', lat: 34.0736, lng: -118.4004 },
-  '94016': { city: 'San Francisco', state: 'CA', lat: 37.7749, lng: -122.4194 },
-  
-  // Default
-  'default': { city: 'Miami', state: 'FL', lat: 25.7617, lng: -80.1918 }
+const axios = require('axios');
+
+// Cache for zip code lookups to reduce API calls
+const zipCodeCache = new Map();
+
+// Default location data if API call fails
+const defaultLocation = { 
+  city: 'Miami', 
+  state: 'FL', 
+  stateAbbreviation: 'FL',
+  lat: 25.7617, 
+  lng: -80.1918 
 };
 
-const getLocationByZipCode = (zipCode) => {
-  // Return the location data for the zip code or the default if not found
-  return zipCodeData[zipCode] || zipCodeData['default'];
+/**
+ * Fetches location data from Zippopotam API
+ * @param {string} zipCode - 5-digit US zip code
+ * @returns {Promise<Object>} Location data object
+ */
+const fetchLocationFromAPI = async (zipCode) => {
+  try {
+    const response = await axios.get(`https://api.zippopotam.us/us/${zipCode}`);
+    
+    if (response.data && response.data.places && response.data.places.length > 0) {
+      const place = response.data.places[0];
+      return {
+        city: place['place name'],
+        state: place.state,
+        stateAbbreviation: place['state abbreviation'],
+        lat: parseFloat(place.latitude),
+        lng: parseFloat(place.longitude),
+        country: response.data.country,
+        countryAbbreviation: response.data['country abbreviation'],
+        postCode: response.data['post code']
+      };
+    }
+  } catch (error) {
+    console.error(`Error fetching location for zip code ${zipCode}:`, error.message);
+  }
+  
+  return null;
+};
+
+/**
+ * Gets location data for a zip code, using cache if available
+ * @param {string} zipCode - 5-digit US zip code
+ * @returns {Promise<Object>} Location data object
+ */
+const getLocationByZipCode = async (zipCode) => {
+  if (!zipCode || !/^\d{5}$/.test(zipCode)) {
+    console.warn(`Invalid zip code format: ${zipCode}`);
+    return { ...defaultLocation };
+  }
+  
+  // Check cache first
+  if (zipCodeCache.has(zipCode)) {
+    return { ...zipCodeCache.get(zipCode) };
+  }
+  
+  // Fetch from API
+  const locationData = await fetchLocationFromAPI(zipCode);
+  
+  // If API call failed, return default
+  if (!locationData) {
+    console.warn(`Could not find location data for zip code: ${zipCode}`);
+    return { ...defaultLocation };
+  }
+  
+  // Cache the result
+  zipCodeCache.set(zipCode, locationData);
+  return { ...locationData };
 };
 
 module.exports = {

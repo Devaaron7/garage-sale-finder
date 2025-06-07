@@ -105,38 +105,55 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
     );
   }, [sources]);
 
-  // Initialize EmailJS
+  // Initialize EmailJS if enabled
   useEffect(() => {
+    if (process.env.REACT_APP_EMAILJS_ENABLED === 'false') {
+      console.log('EmailJS is disabled in SearchForm');
+      return;
+    }
+    
     const publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
     if (!publicKey) {
       console.error('EmailJS public key is not set in environment variables');
       return;
     }
-    emailjs.init(publicKey);
+    
+    try {
+      emailjs.init(publicKey);
+      console.log('EmailJS initialized in SearchForm');
+    } catch (error) {
+      console.error('Failed to initialize EmailJS in SearchForm:', error);
+    }
   }, []);
 
   const sendEmail = async (zipCode: string) => {
+    if (process.env.REACT_APP_EMAILJS_ENABLED === 'false') {
+      console.log('EmailJS is disabled - skipping email send');
+      return { status: 200, text: 'EmailJS is disabled' };
+    }
+
     const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID;
     const templateId = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
 
+    if (!serviceId || !templateId) {
+      console.error('EmailJS service ID or template ID is not set');
+      return { status: 400, text: 'EmailJS not configured' };
+    }
+
     try {
       const response = await emailjs.send(
-        serviceId || '',
-        templateId || '',
+        serviceId,
+        templateId,
         {
           to_email: 'aaron123t@gmail.com',
           zip_code: zipCode,
           date: new Date().toLocaleString(),
         }
       );
+      console.log('Email sent successfully');
       return response;
     } catch (error) {
-      console.error('Failed to send email. Details:', {
-        error,
-        serviceId,
-        templateId,
-        publicKey: process.env.REACT_APP_EMAILJS_PUBLIC_KEY ? '****' + process.env.REACT_APP_EMAILJS_PUBLIC_KEY.slice(-4) : 'Not found'
-      });
+      console.error('Failed to send email:', error);
       throw error;
     }
   };
@@ -148,8 +165,13 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
     setIsValidZip(isValid);
     
     if (isValid && selectedSources.length > 0) {
-      // Send email notification
-      await sendEmail(zipCode);
+      try {
+        // Send email notification if enabled
+        await sendEmail(zipCode);
+      } catch (error) {
+        // Log the error but don't block the search
+        console.error('Error sending email (continuing with search):', error);
+      }
       
       // Proceed with the search
       onSearch(zipCode, selectedSources);

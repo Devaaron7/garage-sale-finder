@@ -1,5 +1,6 @@
 // Server-side GSALR service
 const { getLocationByZipCode } = require('./locationService');
+const axios = require('axios');
 
 // Helper function to add delay
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -18,10 +19,10 @@ const searchGSALR = async (zipCode, radius = 10) => {
   const startTime = Date.now();
   
   // Get location data for the provided zip code
-  const location = getLocationByZipCode(zipCode);
-  const baseCity = location?.city || 'Miami';
-  const baseState = location?.state || 'FL';
-  const baseZip = zipCode || '33101';
+  const location = await getLocationByZipCode(zipCode);
+  const baseCity = location.city;
+  const baseState = location.stateAbbreviation || location.state;
+  const baseZip = zipCode;
 
   // Generate mock data with realistic addresses based on the provided zip code
   const mockData = [
@@ -128,7 +129,32 @@ const searchGSALR = async (zipCode, radius = 10) => {
     await delay(minDelay - elapsed);
   }
 
-  return mockData;
+  // Format the mock data to match the expected interface
+  const formattedData = mockData.map(sale => ({
+    ...sale,
+    // Ensure all required fields are present
+    id: sale.id,
+    title: sale.title,
+    address: sale.address,
+    city: sale.city,
+    state: sale.state,
+    zipCode: sale.zipCode,
+    startDate: sale.startDate,
+    endDate: sale.endDate || sale.startDate,
+    startTime: sale.startTime,
+    endTime: sale.endTime,
+    description: sale.description || '',
+    preview: sale.description ? (sale.description.substring(0, 100) + (sale.description.length > 100 ? '...' : '')) : '',
+    source: sale.source || 'GSALR',
+    price: sale.price || 'Free',
+    distance: sale.distance || 0,
+    distanceUnit: sale.distanceUnit || 'mi',
+    url: sale.url || 'https://www.gsalr.com',
+    imageUrl: sale.image,
+    photoCount: sale.photoCount || 0
+  }));
+
+  return formattedData;
 };
 
 module.exports = {

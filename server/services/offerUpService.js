@@ -23,10 +23,10 @@ const searchOfferUpSales = async (zipCode, radius = 10) => {
   const startTime = Date.now();
   
   // Get location data for the provided zip code
-  const location = getLocationByZipCode(zipCode);
-  const baseCity = location?.city || 'Miami';
-  const baseState = location?.state || 'FL';
-  const baseZip = zipCode || '33101';
+  const location = await getLocationByZipCode(zipCode);
+  const baseCity = location.city;
+  const baseState = location.stateAbbreviation || location.state;
+  const baseZip = zipCode;
 
   // Mock data for OfferUp listings
   const mockOfferUpListings = [

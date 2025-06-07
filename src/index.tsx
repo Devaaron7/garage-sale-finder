@@ -48,8 +48,10 @@ const theme = {
   },
 };
 
-// Initialize EmailJS with public key from environment variables
-initEmailJS();
+// Only initialize EmailJS if it's enabled in the environment
+if (process.env.REACT_APP_EMAILJS_ENABLED !== 'false') {
+  initEmailJS();
+}
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
