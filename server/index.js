@@ -8,6 +8,13 @@ const path = require('path');
 const craigslist = require('node-craigslist');
 const Client = craigslist.Client;
 
+// Import services
+const { searchGSALR } = require('./services/gsalrService');
+const { searchCraigslistGarageSales } = require('./services/craigslistService');
+const { searchMercariSales } = require('./services/mercariService');
+const { searchEbayLocalSales } = require('./services/ebayLocalService');
+const { searchOfferUpSales } = require('./services/offerUpService');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -15,9 +22,82 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+
 // Health check endpoint for Railway
 app.get('/', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'Garage Sale Finder API is running', sources: ['gsalr', 'craigslist'] });
+  res.status(200).json({ 
+    status: 'ok', 
+    message: 'Garage Sale Finder API is running', 
+    sources: ['gsalr', 'craigslist', 'mercari', 'ebay-local', 'offerup'] 
+  });
+});
+
+// Unified API endpoint for searching all sources
+app.get('/api/search', async (req, res) => {
+  const startTime = Date.now();
+  console.log(`\n=== New Unified Search Request: ${new Date().toISOString()} ===`);
+  console.log('Query params:', req.query);
+  
+  try {
+    const { zipcode, source } = req.query;
+    const radius = parseInt(req.query.radius) || 10;
+    
+    if (!zipcode) {
+      return res.status(400).json({ error: 'Zipcode parameter is required' });
+    }
+    
+    console.log(`Searching for garage sales in zipcode: ${zipcode}, source: ${source || 'all'}, radius: ${radius}`);
+    
+    let results = [];
+    
+    // If a specific source is requested, only search that source
+    if (source) {
+      switch(source.toLowerCase()) {
+        case 'gsalr':
+          results = await searchGSALR(zipcode, radius);
+          break;
+        case 'craigslist':
+          results = await searchCraigslistGarageSales(zipcode);
+          break;
+        case 'mercari':
+          results = await searchMercariSales(zipcode, radius);
+          break;
+        case 'ebay-local':
+          results = await searchEbayLocalSales(zipcode, radius);
+          break;
+        case 'offerup':
+          results = await searchOfferUpSales(zipcode, radius);
+          break;
+        default:
+          return res.status(400).json({ error: 'Invalid source parameter' });
+      }
+    } else {
+      // If no source is specified, search all sources
+      const [gsalrResults, craigslistResults, mercariResults, ebayResults, offerUpResults] = await Promise.all([
+        searchGSALR(zipcode, radius),
+        searchCraigslistGarageSales(zipcode),
+        searchMercariSales(zipcode, radius),
+        searchEbayLocalSales(zipcode, radius),
+        searchOfferUpSales(zipcode, radius)
+      ]);
+      
+      results = [
+        ...gsalrResults,
+        ...craigslistResults,
+        ...mercariResults,
+        ...ebayResults,
+        ...offerUpResults
+      ];
+    }
+    
+    console.log(`Found ${results.length} results from ${source || 'all sources'}`);
+    console.log(`Total search time: ${(Date.now() - startTime) / 1000} seconds`);
+    
+    res.json(results);
+  } catch (error) {
+    console.error('Error in unified search endpoint:', error);
+    res.status(500).json({ error: 'Failed to search for garage sales', message: error.message });
+  }
 });
 
 // Determine the operating system

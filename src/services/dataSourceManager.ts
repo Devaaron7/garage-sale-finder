@@ -1,9 +1,5 @@
 import { GarageSale, DataSource } from '../types';
-import { searchGarageSales as searchGSALR } from './gsalrService';
-import { searchCraigslistGarageSales } from './craigslistService';
-import { searchMercariSales } from './mercariService';
-import { searchEbayLocalSales } from './ebayLocalService';
-import { searchOfferUpSales } from './offerUpService';
+import { searchBySource, searchAllSources as searchAllAPI } from './apiService';
 
 export const DATA_SOURCES: DataSource[] = [
   {
@@ -40,47 +36,49 @@ export const DATA_SOURCES: DataSource[] = [
 ];
 
 export const searchAllSources = async (location: string, radius: number = 10, selectedSourceIds: string[] = []): Promise<GarageSale[]> => {
-  // Filter sources by both enabled status and selected sources
-  const sourcesToSearch = DATA_SOURCES.filter(source => 
-    source.enabled && 
-    (selectedSourceIds.length === 0 || selectedSourceIds.includes(source.id))
-  );
-  const results: GarageSale[] = [];
+  console.log(`Searching with location: ${location}, radius: ${radius}, selected sources:`, selectedSourceIds);
   
-  for (const source of sourcesToSearch) {
-    try {
-      let sourceResults: GarageSale[] = [];
+  try {
+    // If specific sources are selected, fetch them individually and combine the results
+    if (selectedSourceIds.length > 0) {
+      const sourcesToSearch = DATA_SOURCES.filter(source => 
+        source.enabled && selectedSourceIds.includes(source.id)
+      );
       
-      switch (source.id) {
-        case 'gsalr':
-          console.log(`Searching GSALR with location: ${location}`);
-          sourceResults = await searchGSALR(location, radius);
-          break;
-        case 'craigslist':
-          console.log(`Searching Craigslist with city: ${location}`);
-          sourceResults = await searchCraigslistGarageSales(location);
-          break;
-        case 'mercari':
-          console.log(`Searching Mercari with location: ${location}`);
-          sourceResults = await searchMercariSales(location, radius);
-          break;
-        case 'ebay-local':
-          console.log(`Searching eBay Local with location: ${location}`);
-          sourceResults = await searchEbayLocalSales(location, radius);
-          break;
-        case 'offerup':
-          console.log(`Searching OfferUp with location: ${location}`);
-          sourceResults = await searchOfferUpSales(location, radius);
-          break;
-      }
+      const results: GarageSale[] = [];
       
-      results.push(...sourceResults);
-    } catch (error) {
-      console.error(`Error fetching from ${source.name}:`, error);
-      // Continue with other sources even if one fails
+      // Make parallel API calls for each selected source
+      const promises = sourcesToSearch.map(source => 
+        searchBySource(location, source.id, radius)
+          .then(sourceResults => {
+            console.log(`Received ${sourceResults.length} results from ${source.name}`);
+            return sourceResults;
+          })
+          .catch(error => {
+            console.error(`Error fetching from ${source.name}:`, error);
+            return [] as GarageSale[];
+          })
+      );
+      
+      const allResults = await Promise.all(promises);
+      
+      // Combine all results
+      allResults.forEach(sourceResults => {
+        results.push(...sourceResults);
+      });
+      
+      // Sort by distance if available
+      return results.sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity));
+    } else {
+      // If no specific sources are selected, fetch all sources at once
+      const results = await searchAllAPI(location, radius);
+      console.log(`Received ${results.length} total results from all sources`);
+      
+      // Sort by distance if available
+      return results.sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity));
     }
+  } catch (error) {
+    console.error('Error searching all sources:', error);
+    return [];
   }
-  
-  // Sort by distance if available
-  return results.sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity));
 };
