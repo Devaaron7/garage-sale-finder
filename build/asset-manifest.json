@@ -1,12 +1,12 @@
 {
   "files": {
-    "main.js": "/garage-sale-finder/static/js/main.26f16589.js",
+    "main.js": "/garage-sale-finder/static/js/main.1a55dee5.js",
     "static/js/453.0ed84e88.chunk.js": "/garage-sale-finder/static/js/453.0ed84e88.chunk.js",
     "index.html": "/garage-sale-finder/index.html",
-    "main.26f16589.js.map": "/garage-sale-finder/static/js/main.26f16589.js.map",
+    "main.1a55dee5.js.map": "/garage-sale-finder/static/js/main.1a55dee5.js.map",
     "453.0ed84e88.chunk.js.map": "/garage-sale-finder/static/js/453.0ed84e88.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/main.26f16589.js"
+    "static/js/main.1a55dee5.js"
   ]
 }
