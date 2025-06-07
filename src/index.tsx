@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { ThemeProvider } from 'styled-components';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { initEmailJS } from './services/emailService';
 
 const theme = {
   colors: {
@@ -46,6 +47,11 @@ const theme = {
     full: '9999px',
   },
 };
+
+// Only initialize EmailJS if it's enabled in the environment
+if (process.env.REACT_APP_EMAILJS_ENABLED !== 'false') {
+  initEmailJS();
+}
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
