@@ -263,15 +263,6 @@ const GarageSaleCard: React.FC<GarageSaleCardProps> = ({ sale, style }) => {
     setShowImagePopup(false);
   };
 
-  // Debug: Log detailed image URL information to console
-  console.log(`Rendering card for sale ${sale.id}:`, { 
-    title: sale.title,
-    imageUrl: sale.imageUrl,
-    hasImageUrl: !!sale.imageUrl,
-    imageUrlLength: sale.imageUrl?.length,
-    photoCount: sale.photoCount
-  });
-
   return (
     <Card data-testid="garage-sale-card" style={style}>
       <div style={{ position: 'relative' }}>

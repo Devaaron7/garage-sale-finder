@@ -108,7 +108,6 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
   // Initialize EmailJS
   useEffect(() => {
     const publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
-    console.log('Initializing EmailJS with public key:', publicKey ? '****' + publicKey.slice(-4) : 'Not found');
     if (!publicKey) {
       console.error('EmailJS public key is not set in environment variables');
       return;
@@ -119,12 +118,6 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
   const sendEmail = async (zipCode: string) => {
     const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID;
     const templateId = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
-    
-    console.log('Sending email with:', { 
-      serviceId,
-      templateId,
-      zipCode 
-    });
 
     try {
       const response = await emailjs.send(
@@ -136,7 +129,6 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
           date: new Date().toLocaleString(),
         }
       );
-      console.log('Email sent successfully', response);
       return response;
     } catch (error) {
       console.error('Failed to send email. Details:', {

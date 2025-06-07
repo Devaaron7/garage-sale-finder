@@ -36,7 +36,6 @@ export const DATA_SOURCES: DataSource[] = [
 ];
 
 export const searchAllSources = async (location: string, radius: number = 10, selectedSourceIds: string[] = []): Promise<GarageSale[]> => {
-  console.log(`Searching with location: ${location}, radius: ${radius}, selected sources:`, selectedSourceIds);
   
   try {
     // If specific sources are selected, fetch them individually and combine the results
@@ -51,7 +50,6 @@ export const searchAllSources = async (location: string, radius: number = 10, se
       const promises = sourcesToSearch.map(source => 
         searchBySource(location, source.id, radius)
           .then(sourceResults => {
-            console.log(`Received ${sourceResults.length} results from ${source.name}`);
             return sourceResults;
           })
           .catch(error => {
