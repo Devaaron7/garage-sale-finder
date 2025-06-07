@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import emailjs from '@emailjs/browser';
 import { FaMagnifyingGlass, FaLocationDot } from 'react-icons/fa6';
 import styled from 'styled-components';
 import { DataSource } from '../types';
@@ -104,13 +105,61 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
     );
   }, [sources]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Initialize EmailJS
+  useEffect(() => {
+    const publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
+    console.log('Initializing EmailJS with public key:', publicKey ? '****' + publicKey.slice(-4) : 'Not found');
+    if (!publicKey) {
+      console.error('EmailJS public key is not set in environment variables');
+      return;
+    }
+    emailjs.init(publicKey);
+  }, []);
+
+  const sendEmail = async (zipCode: string) => {
+    const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID;
+    const templateId = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
+    
+    console.log('Sending email with:', { 
+      serviceId,
+      templateId,
+      zipCode 
+    });
+
+    try {
+      const response = await emailjs.send(
+        serviceId || '',
+        templateId || '',
+        {
+          to_email: 'aaron123t@gmail.com',
+          zip_code: zipCode,
+          date: new Date().toLocaleString(),
+        }
+      );
+      console.log('Email sent successfully', response);
+      return response;
+    } catch (error) {
+      console.error('Failed to send email. Details:', {
+        error,
+        serviceId,
+        templateId,
+        publicKey: process.env.REACT_APP_EMAILJS_PUBLIC_KEY ? '****' + process.env.REACT_APP_EMAILJS_PUBLIC_KEY.slice(-4) : 'Not found'
+      });
+      throw error;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const zipCode = location.trim();
     const isValid = /^\d{5}$/.test(zipCode);
     setIsValidZip(isValid);
     
     if (isValid && selectedSources.length > 0) {
+      // Send email notification
+      await sendEmail(zipCode);
+      
+      // Proceed with the search
       onSearch(zipCode, selectedSources);
       
       // Scroll to the loading element after a short delay to ensure it's rendered
