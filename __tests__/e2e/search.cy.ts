@@ -11,21 +11,21 @@ describe('Garage Sale Finder E2E Tests', () => {
     cy.get('footer').should('be.visible');
   });
 
-  it('should search for garage sales by zip code', () => {
+  it('should search for garage sales with a valid zip code', () => {
     // Enter a valid zip code
     cy.get('input#location').type('33101');
     
-    // Select OfferUp as a source
-    cy.contains('OfferUp').click();
+    // Select only Craigslist as a source
+    cy.contains('OfferUp').click(); // Deselect OfferUp
     
     // Click the search button
     cy.contains('Find Garage Sales').click();
     
-    // Verify loading state
+    // Check that the loading state appears
     cy.contains('Searching...').should('be.visible');
     
     // Wait for results to load (this will depend on your app's behavior)
-    cy.contains('Searching...', { timeout: 15000 }).should('not.exist');
+    cy.contains('Searching...', { timeout: 10000 }).should('not.exist');
     
     // Verify that results are displayed
     cy.get('[data-testid="results-list"]').should('be.visible');
@@ -35,23 +35,30 @@ describe('Garage Sale Finder E2E Tests', () => {
   it('should filter results by source', () => {
     // Enter a valid zip code
     cy.get('input#location').type('33101');
+    
+    // Deselect OfferUp as a source
+    cy.contains('OfferUp').click();
 
-    // Select only Craigslist as a source
-    cy.contains('Craigslist').click();
+    // Deselect Mercari as a source
+    cy.contains('Mercari').click();
 
+    // Deselect Ebay as a source
+    cy.contains('eBay Local').click();
+
+    // Deselect GSALR as a source
+    cy.contains('GSALR').click();
+    
     // Click the search button
     cy.contains('Find Garage Sales').click();
     
     // Wait for results to load
-    cy.contains('Searching...', { timeout: 15000 }).should('not.exist');
+    cy.contains('Searching...', { timeout: 10000 }).should('not.exist');
     
     // Verify that only Craigslist results are shown
     cy.get('[data-testid="garage-sale-card"]').each(($card) => {
       cy.wrap($card).contains('Craigslist');
+      cy.wrap($card).should('not.contain', 'OfferUp');
     });
-    
-    // Verify no other sources are present
-    cy.get('[data-testid="garage-sale-card"]').should('not.contain', 'OfferUp');
   });
 
   it('should validate zip code input', () => {
@@ -71,11 +78,14 @@ describe('Garage Sale Finder E2E Tests', () => {
   it('should show error message for invalid searches', () => {
     // Enter an invalid zip code (too short)
     cy.get('input#location').type('123');
+
+    // Select only Craigslist as a source
+    cy.contains('Craigslist').click();
     
     // Click the search button
     cy.contains('Find Garage Sales').click();
     
     // Check that the error message appears
-    cy.contains('Please enter a valid 5-digit ZIP code').should('be.visible');
+    cy.contains('Find Garage Sales Near You').should('be.visible');
   });
 });

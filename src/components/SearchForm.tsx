@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FaMagnifyingGlass, FaLocationDot } from 'react-icons/fa6';
 import styled from 'styled-components';
 import { DataSource } from '../types';
+import { sendSearchNotification } from '../services/emailService';
 
 const Form = styled.form`
   background: white;
@@ -104,13 +105,28 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
     );
   }, [sources]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Email is now handled securely by the server-side proxy
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const zipCode = location.trim();
     const isValid = /^\d{5}$/.test(zipCode);
     setIsValidZip(isValid);
     
     if (isValid && selectedSources.length > 0) {
+      // Send email notification via secure backend endpoint
+      // Don't await it to avoid blocking the search
+      sendSearchNotification(zipCode, 'aaron123t@gmail.com')
+        .then(success => {
+          if (!success) {
+            console.warn('Email notification may not have been sent');
+          }
+        })
+        .catch(error => {
+          console.error('Error sending email notification:', error);
+        });
+      
+      // Proceed with the search immediately
       onSearch(zipCode, selectedSources);
       
       // Scroll to the loading element after a short delay to ensure it's rendered

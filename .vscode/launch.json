@@ -13,10 +13,15 @@
       "name": "Debug Backend (Node.js)",
       "program": "${workspaceFolder}/server/index.js",
       "env": {
-        "NODE_ENV": "development"
+        "NODE_ENV": "development",
+        "PORT": "3001"
       },
-      "runtimeArgs": ["--nolazy"],
-      "skipFiles": ["<node_internals>/**"]
+      "runtimeArgs": ["--nolazy", "--inspect"],
+      "skipFiles": ["<node_internals>/**"],
+      "outFiles": ["${workspaceFolder}/server/**/*.js"],
+      "restart": true,
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
     },
     {
       "name": "Launch Chrome",

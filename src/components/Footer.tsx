@@ -52,10 +52,8 @@ const Footer: React.FC = () => {
       <Content>
         <Copyright>© {currentYear} Garage Sale Finder. All rights reserved.</Copyright>
         <Links>
-          <Link href="#">About</Link>
-          <Link href="#">Privacy Policy</Link>
-          <Link href="#">Terms of Service</Link>
-          <Link href="#">Contact</Link>
+          <Link href="https://github.com/Devaaron7" target="_blank" rel="noopener noreferrer">About The Developer</Link>
+          <Link href="https://docs.google.com/document/d/1XmLuMtmiHbryYJoPEo0eq7LZk-4JgCxk/edit?usp=sharing&ouid=112285125414052650422&rtpof=true&sd=true" target="_blank" rel="noopener noreferrer">Contact Me</Link>
         </Links>
         <Attribution>
           Garage sale data provided by various sources. We are not responsible for the accuracy of the information.

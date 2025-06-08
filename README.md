@@ -2,13 +2,32 @@
 
 A React application that helps users find garage sales in their area by aggregating listings from multiple sources.
 
+## 🛠️ Tech Stack
+
+### Frontend
+- **Framework**: React with TypeScript
+- **Styling**: Styled Components
+- **Icons**: React Icons
+- **State Management**: React Context API
+- **Build Tool**: Vite
+- **Hosting**: GitHub Pages
+
+### Development Tools
+- **Testing**: Jest, React Testing Library
+- **Linting**: ESLint, Prettier
+- **Version Control**: Git, GitHub
+
+### Data
+- **Mock Data**: JSON-based mock data for development
+- **Type Safety**: TypeScript interfaces for data models
+
 ## Note
 Due to the lack of public apis with garage sale data - this app uses mock data with the focus being to demonstrate frontend, backend, test creation, and creativity of the developer's skill
 
-## Features
+## ✨ Features
+
 
 - Search for garage sales by zip code
-- Filter results by date and distance
 - View detailed information about each sale
 - Responsive design that works on mobile and desktop
 - Easy to add new data sources
