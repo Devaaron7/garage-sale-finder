@@ -21,7 +21,11 @@ A React application that helps users find garage sales in their area by aggregat
 - **Mock Data**: JSON-based mock data for development
 - **Type Safety**: TypeScript interfaces for data models
 
+## Note
+Due to the lack of public apis with garage sale data - this app uses mock data with the focus being to demonstrate frontend, backend, test creation, and creativity of the developer's skill
+
 ## ✨ Features
+
 
 - Search for garage sales by zip code
 - View detailed information about each sale
