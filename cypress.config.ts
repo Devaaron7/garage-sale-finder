@@ -5,17 +5,17 @@ export default defineConfig({
   screenshotOnRunFailure: true,
   e2e: {
     baseUrl: 'http://localhost:3000',
-    specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
-    supportFile: 'cypress/support/e2e.ts',
+    specPattern: '__tests__/e2e/**/*.cy.{js,jsx,ts,tsx}',
+    supportFile: '__tests__/support/e2e.ts',
     setupNodeEvents(on, config) {
       // implement node event listeners here
       return config;
     },
   },
   component: {
-    specPattern: 'cypress/component/**/*.cy.{js,jsx,ts,tsx}',
-    supportFile: 'cypress/support/component.ts',
-    indexHtmlFile: 'cypress/support/component-index.html',
+    specPattern: '__tests__/component/**/*.cy.{js,jsx,ts,tsx}',
+    supportFile: '__tests__/support/component.ts',
+    indexHtmlFile: '__tests__/support/component-index.html',
     devServer: {
       framework: 'react',
       bundler: 'webpack',

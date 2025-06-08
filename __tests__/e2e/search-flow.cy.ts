@@ -60,8 +60,6 @@ cy.get('article').should('have.length.at.least', 1);
     // Click a label with exact text match
     cy.contains('label', 'Craigslist').click();
     
-    cy.pause();
-
     // Click the search button
     cy.contains('button', 'Find Garage Sales').click();
     
