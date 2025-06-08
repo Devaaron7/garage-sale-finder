@@ -36,7 +36,7 @@ const searchEbayLocalSales = async (zipCode, radius = 10) => {
       date: formatDate(2),
       address: "8765 Retro Lane",
       description: "Mid-century modern furniture, vintage lamps, retro wall art, and decorative items from the 50s-70s. Some restoration needed on select pieces.",
-      imageUrl: "https://i.redd.it/vintage-yard-sale-finds-v0-dkw6tz7oe1x91.jpg?width=640&crop=smart&auto=webp&s=b6c2b4b6e2d0f9c8b7a6e5d4c3b2a1f0e9d8c7b6",
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402942/house_4_itig8t.webp",
       startTime: "09:00",
       endTime: "16:00"
     },
@@ -46,7 +46,7 @@ const searchEbayLocalSales = async (zipCode, radius = 10) => {
       date: formatDate(1),
       address: "4321 Workshop Way",
       description: "Quality power tools, hand tools, workbenches, and shop equipment. Many name brands including DeWalt, Milwaukee, and Craftsman. Most in excellent condition.",
-      imageUrl: "https://preview.redd.it/tool-sale-haul-v0-dkw6tz7oe1x91.jpg?width=640&crop=smart&auto=webp&s=b6c2b4b6e2d0f9c8b7a6e5d4c3b2a1f0e9d8c7b6",
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402942/house_5_sg6t7t.webp",
       startTime: "08:00",
       endTime: "15:00"
     },
@@ -56,7 +56,7 @@ const searchEbayLocalSales = async (zipCode, radius = 10) => {
       date: formatDate(0),
       address: "1357 Circuit Drive",
       description: "Computers, monitors, tablets, speakers, and various tech accessories. Some items need minor repairs, others work perfectly. Great for tech enthusiasts.",
-      imageUrl: "https://preview.redd.it/electronics-yard-sale-v0-dkw6tz7oe1x91.jpg?width=640&crop=smart&auto=webp&s=b6c2b4b6e2d0f9c8b7a6e5d4c3b2a1f0e9d8c7b6",
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402942/games_4_fdmfyd.webp",
       startTime: "10:00",
       endTime: "17:00"
     },
@@ -66,7 +66,7 @@ const searchEbayLocalSales = async (zipCode, radius = 10) => {
       date: formatDate(3),
       address: "2468 Active Avenue",
       description: "Camping gear, fishing equipment, exercise machines, bikes, and sports equipment. Perfect for outdoor enthusiasts looking for deals on quality gear.",
-      imageUrl: "https://preview.redd.it/sporting-goods-sale-v0-dkw6tz7oe1x91.jpg?width=640&crop=smart&auto=webp&s=b6c2b4b6e2d0f9c8b7a6e5d4c3b2a1f0e9d8c7b6",
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749404082/iacx5mxvxs9b1_doh3kd.jpg",
       startTime: "08:30",
       endTime: "16:30"
     },
@@ -76,7 +76,7 @@ const searchEbayLocalSales = async (zipCode, radius = 10) => {
       date: formatDate(-1),
       address: "9753 Fashion Boulevard",
       description: "Curated collection of vintage clothing, shoes, handbags, and jewelry from the 60s-90s. Many designer items and unique pieces for collectors.",
-      imageUrl: "https://preview.redd.it/vintage-clothing-sale-v0-dkw6tz7oe1x91.jpg?width=640&crop=smart&auto=webp&s=b6c2b4b6e2d0f9c8b7a6e5d4c3b2a1f0e9d8c7b6",
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402942/games_2_ht4wwh.jpg",
       startTime: "11:00",
       endTime: "18:00"
     }
@@ -100,7 +100,7 @@ const searchEbayLocalSales = async (zipCode, radius = 10) => {
     distance: Math.floor(Math.random() * 10) + 1, // Random distance between 1-10
     distanceUnit: 'mi',
     preview: listing.description.substring(0, 100) + '...',
-    url: 'https://www.ebay.com/local',
+    url: 'https://www.ebay.com/sch/i.html?_nkw=' + baseZip,
     imageUrl: listing.imageUrl,
     photoCount: 1
   }));

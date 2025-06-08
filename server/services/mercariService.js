@@ -37,7 +37,7 @@ const searchMercariSales = async (zipCode, radius = 10) => {
       address: "7443 SW 102nd Ave",
       url: "https://www.mercari.com/",
       description: "Selling classic video games and accessories for NES, SNES, and PlayStation. Includes controllers, cartridges, and memory cards.",
-      imageUrl: "https://i.redd.it/d426d0jxlp391.jpg",
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402947/games_1_injafu.jpg",
       startTime: "10:00",
       endTime: "17:00"
     },
@@ -48,7 +48,7 @@ const searchMercariSales = async (zipCode, radius = 10) => {
       address: "2301 NW 87th St",
       url: "https://www.mercari.com/",
       description: "Large binder of mixed cards and booster packs. Includes a few rares and holographics. Great deal for collectors.",
-      imageUrl: "https://i.redd.it/m813cedygu791.jpg",
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402941/cards_1_r2lhv6.jpg",
       startTime: "09:00",
       endTime: "16:00"
     },
@@ -59,7 +59,7 @@ const searchMercariSales = async (zipCode, radius = 10) => {
       address: "11850 NE 16th Ave",
       url: "https://www.mercari.com/",
       description: "Downsizing home library. Wide range of genres including mystery, sci-fi, memoirs, and classics. Most in excellent condition.",
-      imageUrl: "https://i.redd.it/dsxkl88z7f9b1.jpg",
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402941/books_1_dounu5.jpg",
       startTime: "11:00",
       endTime: "18:00"
     },
@@ -70,7 +70,7 @@ const searchMercariSales = async (zipCode, radius = 10) => {
       address: "5631 SW 40th St",
       url: "https://www.mercari.com/",
       description: "Bulk movie sale! Great titles across all genres. Includes boxed sets and collector's editions. Everything tested and clean.",
-      imageUrl: "https://preview.redd.it/check-out-my-garage-sale-haul-v0-2atq367gt68d1.jpg?width=640&crop=smart&auto=webp&s=19a80d2fd6ad03fa855ca5733e00d5f73319d4a3",
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402945/media_1_niqvdx.webp",
       startTime: "10:30",
       endTime: "16:30"
     },
@@ -81,7 +81,7 @@ const searchMercariSales = async (zipCode, radius = 10) => {
       address: "3499 NW 18th St",
       url: "https://www.mercari.com/",
       description: "Unique and quirky finds: old figurines, brass pieces, coins, and antique-style items. Great conversation starters or decor.",
-      imageUrl: "https://preview.redd.it/got-all-these-at-a-yard-sale-for-10-v0-um7gnwfgl8ub1.jpg?width=640&crop=smart&auto=webp&s=dc4ab9600062e05a940b838edaf766af36cedb2d",
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402945/house_6_mfbmgc.webp",
       startTime: "09:30",
       endTime: "15:30"
     }

@@ -71,7 +71,6 @@ app.get('/api/search', async (req, res) => {
       return res.status(400).json({ error: 'Zipcode parameter is required' });
     }
     
-    console.log(`Searching for garage sales in zipcode: ${zipcode}, source: ${source || 'all'}, radius: ${radius}`);
     
     let results = [];
     

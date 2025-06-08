@@ -36,7 +36,7 @@ const searchOfferUpSales = async (zipCode, radius = 10) => {
       date: formatDate(1),
       address: "5280 Community Circle",
       description: "Three families combining for one big sale! Furniture, kitchen items, toys, clothes, tools, and much more. New items added throughout the day.",
-      imageUrl: "https://preview.redd.it/multi-family-sale-v0-f7g9h8i7j6k5l4m3n2o1p0.jpg?width=640&crop=smart&auto=webp&s=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402942/house_2_slczm6.jpg",
       startTime: "07:00",
       endTime: "15:00"
     },
@@ -46,7 +46,7 @@ const searchOfferUpSales = async (zipCode, radius = 10) => {
       date: formatDate(2),
       address: "1470 Creative Way",
       description: "Huge selection of craft supplies! Fabric, yarn, beads, scrapbooking materials, art supplies, and more. Many items still new in packaging.",
-      imageUrl: "https://preview.redd.it/craft-supplies-sale-v0-f7g9h8i7j6k5l4m3n2o1p0.jpg?width=640&crop=smart&auto=webp&s=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402941/estate_4_hb2xyw.webp",
       startTime: "09:00",
       endTime: "16:00"
     },
@@ -56,7 +56,7 @@ const searchOfferUpSales = async (zipCode, radius = 10) => {
       date: formatDate(0),
       address: "3692 Culinary Court",
       description: "Quality kitchenware including small appliances, cookware, bakeware, serving pieces, and gadgets. Many name brands like KitchenAid, Cuisinart, and more.",
-      imageUrl: "https://preview.redd.it/kitchen-sale-v0-f7g9h8i7j6k5l4m3n2o1p0.jpg?width=640&crop=smart&auto=webp&s=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402949/house_1_jwgaqv.jpg",
       startTime: "08:30",
       endTime: "15:30"
     },
@@ -66,7 +66,7 @@ const searchOfferUpSales = async (zipCode, radius = 10) => {
       date: formatDate(3),
       address: "8024 Builder Boulevard",
       description: "Leftover materials from recent renovations. Includes tile, hardwood flooring, light fixtures, cabinet hardware, paint, and more. All priced below retail.",
-      imageUrl: "https://preview.redd.it/renovation-sale-v0-f7g9h8i7j6k5l4m3n2o1p0.jpg?width=640&crop=smart&auto=webp&s=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402940/artifacts_2_izv0y9.webp",
       startTime: "07:30",
       endTime: "14:30"
     },
@@ -76,7 +76,7 @@ const searchOfferUpSales = async (zipCode, radius = 10) => {
       date: formatDate(-1),
       address: "6137 Luxury Lane",
       description: "Curated collection of designer clothing, handbags, shoes, and accessories. Many items barely worn or new with tags. Brands include Coach, Michael Kors, Kate Spade, and more.",
-      imageUrl: "https://preview.redd.it/designer-sale-v0-f7g9h8i7j6k5l4m3n2o1p0.jpg?width=640&crop=smart&auto=webp&s=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402942/house_3_t4pczr.jpg",
       startTime: "10:00",
       endTime: "17:00"
     }
@@ -100,7 +100,7 @@ const searchOfferUpSales = async (zipCode, radius = 10) => {
     distance: Math.floor(Math.random() * 10) + 1, // Random distance between 1-10
     distanceUnit: 'mi',
     preview: listing.description.substring(0, 100) + '...',
-    url: 'https://www.offerup.com',
+    url: 'https://offerup.com/search?q=' + baseZip,
     imageUrl: listing.imageUrl,
     photoCount: 1
   }));

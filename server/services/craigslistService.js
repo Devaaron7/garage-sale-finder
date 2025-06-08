@@ -35,7 +35,7 @@ const searchCraigslistGarageSales = async (zipCode) => {
       zipCode: baseZip,
       url: 'https://www.craigslist.org/about/sites#US',
       description: `Several families participating — we've got everything from kids' bikes, games, kitchenware, small furniture, and more. Come early!`,
-      imageUrl: "https://i.redd.it/8sdjd5mrswya1.jpg"
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402951/toy_3_a8tcb4.jpg"
     },
     {
       title: "Garage Cleanout Sale – Power Tools & Garden Gear",
@@ -47,7 +47,7 @@ const searchCraigslistGarageSales = async (zipCode) => {
       zipCode: baseZip,
       url: 'https://www.craigslist.org/about/sites#US',
       description: "Selling used power drills, lawn equipment, hand tools, hoses, and car jacks. Some items still new in box. Cash only.",
-      imageUrl: "https://preview.redd.it/yard-sale-steal-v0-38spkuwnhf6d1.jpg?width=640&crop=smart&auto=webp&s=71346ec4bd71886d966ef75fe77a69b2f9b7335b"
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402945/tools_1_prufpz.webp"
     },
     {
       title: "College Move-Out – Electronics, Decor & Small Appliances",
@@ -59,7 +59,7 @@ const searchCraigslistGarageSales = async (zipCode) => {
       zipCode: baseZip,
       url: 'https://www.craigslist.org/about/sites#US',
       description: "Just graduated, so everything must go! Selling a mini fridge, desk lamp, speakers, and some dorm wall decor. All in great shape.",
-      imageUrl: "https://i.redd.it/hr4zho2gywmz.jpg"
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402942/games_3_f4iyfn.jpg"
     },
     {
       title: "Comic Books & Collectibles Sale – Huge Inventory",
@@ -71,7 +71,7 @@ const searchCraigslistGarageSales = async (zipCode) => {
       zipCode: baseZip,
       url: 'https://www.craigslist.org/about/sites#US',
       description: "Over 300 comics (Marvel, DC, indie), plus Funko Pops, action figures, and posters. Priced to sell. Great for collectors or kids.",
-      imageUrl: "https://preview.redd.it/adz2ps7sxni11.jpg?auto=webp&s=abbc11c8978d05c6efe5324f456042f51f2dd22c"
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402940/comics_1_odtosc.webp"
     },
     {
       title: "Estate Sale – Antiques, Dishes, Rugs & More",
@@ -83,7 +83,7 @@ const searchCraigslistGarageSales = async (zipCode) => {
       zipCode: baseZip,
       url: 'https://www.craigslist.org/about/sites#US',
       description: "Fine china, crystalware, handwoven rugs, classic furniture, and wall art. Downsizing and everything must go this weekend.",
-      imageUrl: "https://preview.redd.it/estate-sale-help-v0-5ws2qhm2ccvd1.jpg?width=600&format=pjpg&auto=webp&s=b2673509ef7092b12d583f1babd0ef4505729db6"
+      imageUrl: "https://res.cloudinary.com/djtdrtepl/image/upload/v1749402952/estate_2_ibzohv.jpg"
     }
   ];
 
