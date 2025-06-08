@@ -47,8 +47,8 @@ const theme = {
   },
 };
 
-// EmailJS is now initialized on the server side
-// No need to initialize it in the frontend
+// EmailJS is now initialized in the SearchForm component
+// It fetches credentials securely from the backend
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

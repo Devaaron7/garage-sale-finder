@@ -4,7 +4,7 @@ const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const os = require('os');
 const path = require('path');
-const { sendEmail } = require('./services/emailService');
+const { getEmailJSConfig } = require('./services/emailService');
 // Import the client constructor from node-craigslist
 const craigslist = require('node-craigslist');
 const Client = craigslist.Client;
@@ -23,7 +23,6 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-
 // Health check endpoint for Railway
 app.get('/', (req, res) => {
   res.status(200).json({ 
@@ -34,42 +33,18 @@ app.get('/', (req, res) => {
   });
 });
 
-// Secure email endpoint
-app.post('/api/send-email', async (req, res) => {
+// API endpoint to provide EmailJS configuration
+app.get('/api/email-config', (req, res) => {
   try {
-    const { to, zipCode } = req.body;
-    
-    if (!zipCode) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Zip code is required' 
-      });
-    }
-
-    // Email is optional but preferred
-    const emailTo = to || 'aaron123t@gmail.com'; // Default email if not provided
-    
-    const result = await sendEmail({ to: emailTo, zipCode });
-    
-    if (result.success) {
-      return res.json({ 
-        success: true, 
-        message: 'Email sent successfully'
-      });
-    } else {
-      return res.status(500).json({
-        success: false,
-        error: result.error || 'Failed to send email'
-      });
-    }
+    const config = getEmailJSConfig();
+    res.json(config);
   } catch (error) {
-    console.error('Error in email endpoint:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
+    console.error('Failed to get EmailJS config:', error);
+    res.status(500).json({ error: 'Failed to get EmailJS configuration' });
   }
 });
+
+// Email configuration is now provided via /api/email-config
 
 // Unified API endpoint for searching all sources
 app.get('/api/search', async (req, res) => {
