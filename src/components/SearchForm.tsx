@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import emailjs from '@emailjs/browser';
+import React, { useState } from 'react';
 import { FaMagnifyingGlass, FaLocationDot } from 'react-icons/fa6';
 import styled from 'styled-components';
 import { DataSource } from '../types';
+import { sendSearchNotification } from '../services/emailService';
 
 const Form = styled.form`
   background: white;
@@ -105,58 +105,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
     );
   }, [sources]);
 
-  // Initialize EmailJS if enabled
-  useEffect(() => {
-    if (process.env.REACT_APP_EMAILJS_ENABLED === 'false') {
-      console.log('EmailJS is disabled in SearchForm');
-      return;
-    }
-    
-    const publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
-    if (!publicKey) {
-      console.error('EmailJS public key is not set in environment variables');
-      return;
-    }
-    
-    try {
-      emailjs.init(publicKey);
-      console.log('EmailJS initialized in SearchForm');
-    } catch (error) {
-      console.error('Failed to initialize EmailJS in SearchForm:', error);
-    }
-  }, []);
-
-  const sendEmail = async (zipCode: string) => {
-    if (process.env.REACT_APP_EMAILJS_ENABLED === 'false') {
-      console.log('EmailJS is disabled - skipping email send');
-      return { status: 200, text: 'EmailJS is disabled' };
-    }
-
-    const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID;
-    const templateId = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
-
-    if (!serviceId || !templateId) {
-      console.error('EmailJS service ID or template ID is not set');
-      return { status: 400, text: 'EmailJS not configured' };
-    }
-
-    try {
-      const response = await emailjs.send(
-        serviceId,
-        templateId,
-        {
-          to_email: 'aaron123t@gmail.com',
-          zip_code: zipCode,
-          date: new Date().toLocaleString(),
-        }
-      );
-      console.log('Email sent successfully');
-      return response;
-    } catch (error) {
-      console.error('Failed to send email:', error);
-      throw error;
-    }
-  };
+  // Use the secure email service instead of direct EmailJS integration
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,15 +114,19 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
     setIsValidZip(isValid);
     
     if (isValid && selectedSources.length > 0) {
-      try {
-        // Send email notification if enabled
-        await sendEmail(zipCode);
-      } catch (error) {
-        // Log the error but don't block the search
-        console.error('Error sending email (continuing with search):', error);
-      }
+      // Send email notification via secure backend endpoint
+      // Don't await it to avoid blocking the search
+      sendSearchNotification(zipCode, 'aaron123t@gmail.com')
+        .then(success => {
+          if (!success) {
+            console.warn('Email notification may not have been sent');
+          }
+        })
+        .catch(error => {
+          console.error('Error sending email notification:', error);
+        });
       
-      // Proceed with the search
+      // Proceed with the search immediately
       onSearch(zipCode, selectedSources);
       
       // Scroll to the loading element after a short delay to ensure it's rendered

@@ -4,6 +4,7 @@ const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const os = require('os');
 const path = require('path');
+const { sendEmail } = require('./services/emailService');
 // Import the client constructor from node-craigslist
 const craigslist = require('node-craigslist');
 const Client = craigslist.Client;
@@ -28,8 +29,46 @@ app.get('/', (req, res) => {
   res.status(200).json({ 
     status: 'ok', 
     message: 'Garage Sale Finder API is running', 
-    sources: ['gsalr', 'craigslist', 'mercari', 'ebay-local', 'offerup'] 
+    sources: ['gsalr', 'craigslist', 'mercari', 'ebay-local', 'offerup'],
+    emailEnabled: process.env.REACT_APP_EMAILJS_ENABLED !== 'false'
   });
+});
+
+// Secure email endpoint
+app.post('/api/send-email', async (req, res) => {
+  try {
+    const { to, zipCode } = req.body;
+    
+    if (!zipCode) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Zip code is required' 
+      });
+    }
+
+    // Email is optional but preferred
+    const emailTo = to || 'aaron123t@gmail.com'; // Default email if not provided
+    
+    const result = await sendEmail({ to: emailTo, zipCode });
+    
+    if (result.success) {
+      return res.json({ 
+        success: true, 
+        message: 'Email sent successfully'
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        error: result.error || 'Failed to send email'
+      });
+    }
+  } catch (error) {
+    console.error('Error in email endpoint:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
 });
 
 // Unified API endpoint for searching all sources

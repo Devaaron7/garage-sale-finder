@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client';
 import { ThemeProvider } from 'styled-components';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import { initEmailJS } from './services/emailService';
 
 const theme = {
   colors: {
@@ -48,10 +47,8 @@ const theme = {
   },
 };
 
-// Only initialize EmailJS if it's enabled in the environment
-if (process.env.REACT_APP_EMAILJS_ENABLED !== 'false') {
-  initEmailJS();
-}
+// EmailJS is now initialized on the server side
+// No need to initialize it in the frontend
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

@@ -1,64 +1,40 @@
-import emailjs from '@emailjs/browser';
+// Base URL for API calls
+const API_BASE_URL = process.env.REACT_APP_API_URL || 
+  (process.env.NODE_ENV === 'production' 
+    ? 'https://garage-finder-app-production.up.railway.app'
+    : 'http://localhost:3001');
 
-// Check if EmailJS should be enabled
-const isEmailJSEnabled = process.env.REACT_APP_EMAILJS_ENABLED !== 'false';
-
-// Initialize EmailJS with public key
-export const initEmailJS = () => {
-  if (!isEmailJSEnabled) {
-    console.log('EmailJS is disabled via environment variable');
-    return false;
-  }
-
-  const publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
-  
-  if (!publicKey) {
-    console.warn('EmailJS public key is not set in environment variables');
-    return false;
-  }
-  
-  try {
-    emailjs.init(publicKey);
-    console.log('EmailJS initialized successfully');
-    return true;
-  } catch (error) {
-    console.error('Failed to initialize EmailJS:', error);
-    return false;
-  }
-};
+// Initialize EmailJS is no longer needed as we're using the backend
 
 /**
- * Send an email with the zipcode used for search
+ * Send an email with the zipcode used for search using the secure backend endpoint
  * @param zipCode The zip code used for search
  * @param email User's email (optional)
  * @returns Promise<boolean> Success status
  */
 export const sendSearchNotification = async (zipCode: string, email?: string): Promise<boolean> => {
-  if (!isEmailJSEnabled) {
-    console.log('EmailJS is disabled - skipping email notification');
-    return true; // Return true to prevent errors in the UI
-  }
-
   try {
-    const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID;
-    const templateId = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
+    console.log(`Sending search notification for zip code: ${zipCode}`);
     
-    if (!serviceId || !templateId) {
-      console.error('EmailJS service ID or template ID is not set');
+    const response = await fetch(`${API_BASE_URL}/api/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        zipCode,
+        to: email, // Optional, backend will use default if not provided
+      }),
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      console.error('Email API error:', data.error);
       return false;
     }
     
-    const response = await emailjs.send(
-      serviceId,
-      templateId,
-      {
-        zipCode,
-        email: email || 'Not provided',
-        searchDate: new Date().toLocaleString(),
-      }
-    );
-    
-    console.log('Email notification sent successfully');
+    console.log('Email notification sent successfully via backend');
     return true;
   } catch (error) {
     console.error('Failed to send email notification:', error);
