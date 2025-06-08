@@ -2,9 +2,10 @@ import { GarageSale } from '../types';
 import axios from 'axios';
 
 // Base URL for API calls
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://garage-finder-app-production.up.railway.app'
-  : 'http://localhost:3001';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 
+  (process.env.NODE_ENV === 'production' 
+    ? 'https://garage-finder-app-production.up.railway.app'
+    : 'http://localhost:3001');
 
 /**
  * Search for garage sales from a specific source
