@@ -4,7 +4,7 @@ const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const os = require('os');
 const path = require('path');
-const { getEmailJSConfig } = require('./services/emailService');
+const { sendEmail } = require('./services/emailService');
 // Import the client constructor from node-craigslist
 const craigslist = require('node-craigslist');
 const Client = craigslist.Client;
@@ -33,18 +33,29 @@ app.get('/', (req, res) => {
   });
 });
 
-// API endpoint to provide EmailJS configuration
-app.get('/api/email-config', (req, res) => {
+// API endpoint to send email notifications securely
+app.post('/api/send-email', async (req, res) => {
   try {
-    const config = getEmailJSConfig();
-    res.json(config);
+    const { zipCode, to } = req.body;
+    
+    if (!zipCode) {
+      return res.status(400).json({ error: 'Zip code is required' });
+    }
+    
+    const result = await sendEmail({ zipCode, to });
+    
+    if (!result.success) {
+      return res.status(500).json({ error: result.error });
+    }
+    
+    res.json({ message: result.message });
   } catch (error) {
-    console.error('Failed to get EmailJS config:', error);
-    res.status(500).json({ error: 'Failed to get EmailJS configuration' });
+    console.error('Failed to send email:', error);
+    res.status(500).json({ error: 'Failed to send email' });
   }
 });
 
-// Email configuration is now provided via /api/email-config
+// Email sending is now handled securely via /api/send-email
 
 // Unified API endpoint for searching all sources
 app.get('/api/search', async (req, res) => {

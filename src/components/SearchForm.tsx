@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FaMagnifyingGlass, FaLocationDot } from 'react-icons/fa6';
 import styled from 'styled-components';
 import { DataSource } from '../types';
-import { sendSearchNotification, initEmailJS } from '../services/emailService';
+import { sendSearchNotification } from '../services/emailService';
 
 const Form = styled.form`
   background: white;
@@ -105,12 +105,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, sources })
     );
   }, [sources]);
 
-  // Initialize EmailJS when component mounts
-  useEffect(() => {
-    initEmailJS().catch(error => {
-      console.error('Error initializing EmailJS:', error);
-    });
-  }, []);
+  // Email is now handled securely by the server-side proxy
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
