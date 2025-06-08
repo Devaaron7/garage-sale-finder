@@ -2,7 +2,7 @@
 
 A React application that helps users find garage sales in their area by aggregating listings from multiple sources.
 
-# App Live Live
+# App Live Link
 https://devaaron7.github.io/garage-sale-finder/
 
 ## 🛠️ Tech Stack
