@@ -12,34 +12,4 @@ export default defineConfig({
       return config;
     },
   },
-  component: {
-    specPattern: '__tests__/component/**/*.cy.{js,jsx,ts,tsx}',
-    supportFile: '__tests__/support/component.ts',
-    indexHtmlFile: '__tests__/support/component-index.html',
-    devServer: {
-      framework: 'react',
-      bundler: 'webpack',
-      webpackConfig: {
-        resolve: {
-          extensions: ['.ts', '.tsx', '.js', '.jsx'],
-        },
-        module: {
-          rules: [
-            {
-              test: /\.(ts|tsx)$/,
-              exclude: [/node_modules/],
-              use: [
-                {
-                  loader: 'babel-loader',
-                  options: {
-                    presets: ['@babel/preset-env', '@babel/preset-react', '@babel/preset-typescript'],
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      },
-    },
-  },
 });
